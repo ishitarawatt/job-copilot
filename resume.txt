@@ -1,0 +1,13 @@
+Priya Sharma
+priya@example.com | +91 98765 43210
+
+Product manager with 5 years shipping data products.
+
+Skills: Python, SQL, product management, data analysis, user research, agile
+
+Experience:
+- Owned roadmapping for an analytics product used by 120 enterprise customers
+- Ran A/B testing programme that lifted onboarding conversion by 14%
+- Wrote SQL and Python scripts for data analysis that cut reporting time by 30%
+- Conducted user research with 25 customers to prioritise the 2024 roadmap
+- Managed stakeholder management across engineering, sales, and support

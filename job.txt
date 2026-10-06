@@ -1,0 +1,11 @@
+Senior Product Manager, AI Platform
+
+We are hiring a Senior Product Manager to own our LLM platform.
+
+Responsibilities:
+- Define the roadmapping process for evals and RAG features
+- Run A/B testing and experimentation on prompt engineering changes
+- Partner with engineering on API design and stakeholder management
+
+Requirements: Python, SQL, product management, data analysis, evals, user research.
+Nice to have: Kubernetes, go-to-market experience.
