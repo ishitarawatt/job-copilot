@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from .guardrails import check_fabrication
+from .guardrails import check_fabrication, check_summary
 from .llm import LLMClient, extract_json
 from .schemas import CriticReport, InterviewPrep, JobAnalysis, TailoredResume
 
@@ -83,9 +83,12 @@ class Coach:
 class Critic:
     """Reviewer agent. Deliberately deterministic: a model grading its own fabrications is weak evidence."""
 
-    def run(self, resume: dict, tailored: TailoredResume) -> CriticReport:
+    def run(self, resume: dict, tailored: TailoredResume, job_title: str = "") -> CriticReport:
         issues = check_fabrication(
             tailored.bullets, tailored.matched_skills, resume["bullets"], resume["skills"]
+        )
+        issues += check_summary(
+            tailored.summary, resume.get("summary", ""), resume["bullets"], resume["skills"], job_title
         )
         if not tailored.bullets:
             issues.append("Tailored resume has no bullets.")

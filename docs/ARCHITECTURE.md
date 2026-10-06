@@ -17,7 +17,7 @@ resume + job description
            ▼
  ┌──────────────────────┐        ┌────────────────────────┐
  │ Tailor (LLM)         │◀──────▶│ Critic (deterministic) │
- │ source-facts-only    │ issues │ traceability + numbers │
+ │ source-facts-only    │ issues │ trace, numbers, verbs  │
  └─────────┬────────────┘ fed    └────────────────────────┘
            │ approved       back, max 1 loop; still failing ──▶ needs_human
            ▼                                  (resume withheld)

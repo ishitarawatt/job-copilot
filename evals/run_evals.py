@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from copilot.guardrails import check_fabrication
+from copilot.guardrails import check_fabrication, check_summary
 from copilot.llm import AnthropicClient, MockClient
 from copilot.monitoring import Tracer
 from copilot.orchestrator import Orchestrator, parse_resume
@@ -58,11 +58,15 @@ def main() -> int:
         if result.resume:
             surfaced += 1
             src = parse_resume(case["resume"])
-            if check_fabrication(result.resume.bullets, result.resume.matched_skills,
-                                 src["bullets"], src["skills"]):
+            title = result.analysis.title if result.analysis else ""
+            if (check_fabrication(result.resume.bullets, result.resume.matched_skills,
+                                  src["bullets"], src["skills"])
+                    or check_summary(result.resume.summary, src["summary"], src["bullets"],
+                                     src["skills"], title)):
                 fabricated += 1
         blob = json.dumps(result.to_dict())
-        if "@example.com" in blob or "98765" in blob or "90000 11111" in blob:
+        leaked = ["@example.com", "98765", "90000 11111", *case["expect"].get("pii_absent", [])]
+        if any(p in blob for p in leaked):
             pii_leaks += 1
 
         passed += not fails

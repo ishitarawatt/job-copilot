@@ -70,8 +70,9 @@ class MockClient:
     the critic / retry / escalation path can be exercised in tests.
     """
 
-    def __init__(self, fabricate_first_n: int = 0):
+    def __init__(self, fabricate_first_n: int = 0, inflate_first_n: int = 0):
         self.fabricate_first_n = fabricate_first_n
+        self.inflate_first_n = inflate_first_n   # strengthen a verb ("Owned" -> "Led") on the first N calls
         self.tailor_calls = 0
 
     def complete(self, role: str, system: str, user: str) -> str:
@@ -111,6 +112,9 @@ class MockClient:
         bullets = sorted(resume["bullets"], key=score, reverse=True)
         if self.tailor_calls <= self.fabricate_first_n:
             bullets = ["Led a 40-person team to deliver a $12M revenue increase"] + bullets
+        if self.tailor_calls <= self.inflate_first_n and bullets:
+            first, _, rest = bullets[0].partition(" ")
+            bullets = [f"Led {rest}".strip()] + bullets[1:]   # same facts, bigger claim
         top = ", ".join(have_skills[:3]) if have_skills else "relevant experience"
         summary = f"{resume.get('summary', '').strip()} Focused on {top} for the {analysis['title']} role.".strip()
         return {"summary": summary, "bullets": bullets, "matched_skills": have_skills, "gaps": gaps}

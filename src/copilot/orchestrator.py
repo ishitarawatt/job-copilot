@@ -25,8 +25,8 @@ def parse_resume(text: str) -> dict:
             skills = [s.strip() for s in line.split(":", 1)[1].split(",") if s.strip()]
         elif line[0] in "-*•":
             bullets.append(line.lstrip("-*• ").strip())
-        elif (not line.endswith(":") and "[EMAIL]" not in line and "[PHONE]" not in line
-              and "|" not in line and len(line.split()) > 3):
+        elif (not line.endswith(":") and "|" not in line and len(line.split()) > 3
+              and not any(m in line for m in ("[EMAIL]", "[PHONE]", "[URL]", "[HANDLE]", "[ADDRESS]"))):
             summary_lines.append(line)  # skips the name / contact header lines
     return {"summary": " ".join(summary_lines[:2]), "skills": skills, "bullets": bullets}
 
@@ -84,7 +84,7 @@ class Orchestrator:
                 tailored = self._call(trace_id, "tailor",
                                       lambda: self.tailor.run(resume, analysis, feedback), json.dumps(resume))
                 with self.tracer.span(trace_id, "critic") as rec:
-                    report = self.critic.run(resume, tailored)
+                    report = self.critic.run(resume, tailored, analysis.title)
                     rec["out_tokens"] = approx_tokens(json.dumps(report.__dict__))
                 result.critic = report
                 if report.approved:
