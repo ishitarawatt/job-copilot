@@ -4,6 +4,9 @@ A multi-agent product that tailors your resume to a job posting **without invent
 
 Four agents: **Analyzer → Tailor ⇄ Critic → Coach**, wrapped in deterministic guardrails, full tracing, and an eval suite with CI-style gates.
 
+## Try it in the browser
+Open [`demo/index.html`](demo/index.html) in any browser, or use the hosted demo link. It runs the full pipeline in the page, shows which original bullet each tailored bullet came from, and has a switch that injects a made-up bullet so you can watch the Critic reject it. When opened inside Claude, a live mode lets real Claude play the Analyzer, Tailor and Coach.
+
 ## Quick start (no API key needed)
 ```bash
 pip install -r requirements.txt          # pytest (+ anthropic for live mode)
@@ -35,6 +38,8 @@ src/copilot/           agents, orchestrator, guardrails, tracing, LLM clients, C
 evals/                 cases.json + run_evals.py (pass rate, fabrication rate, PII leak rate)
 tests/                 unit tests
 examples/              sample resume and job description
+demo/index.html        browser demo (example engine + live Claude mode)
+CLAUDE.md              context for Claude in new chats
 ```
 
 ## Statuses
