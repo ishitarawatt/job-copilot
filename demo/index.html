@@ -218,7 +218,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
   <section class="controls" aria-label="Run">
     <div class="seg" role="group" aria-label="Engine">
       <button type="button" id="eng-example" aria-pressed="true">Example engine</button>
-      <button type="button" id="eng-live" aria-pressed="false" disabled>Claude (live)</button>
+      <button type="button" id="eng-live" aria-pressed="false" disabled>Live</button>
     </div>
     <label class="toggle" for="inject"><input type="checkbox" id="inject"> Inject a made-up bullet into the first draft</label>
     <label class="toggle" for="inflate"><input type="checkbox" id="inflate"> Strengthen a verb in the first draft ("Owned" becomes "Led")</label>
@@ -256,7 +256,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
 
   <footer>
     <p>How it stays truthful: every tailored bullet must match one of your original bullets (80% word overlap or more) and may not add any number or a stronger claim ("Used" becoming "Led"). The summary is held to the same rules. Every claimed skill needs evidence in your resume. If the Critic rejects a draft, the Tailor gets one retry with the Critic's notes; if it still fails, the draft is withheld and sent for human review.</p>
-    <p>Live mode sends your text to Claude using your own Claude account and asks your permission first. Phone numbers, emails, links, @handles and street addresses are removed before anything is sent.</p>
+    <p>Live mode sends your text to the live model using your own account and asks your permission first. Phone numbers, emails, links, @handles and street addresses are removed before anything is sent.</p>
   </footer>
 </div>
 
@@ -620,7 +620,7 @@ const MAX_RETRIES = 2, MAX_CRITIC_LOOPS = 1;
 
 async function run({ resumeText, jdText, engine, inject, inflate, animate, signal }) {
   const E = engine === "live" ? live : example;
-  const engineName = engine === "live" ? "claude" : "example";
+  const engineName = engine === "live" ? "live" : "example";
   const trace = [];
   const pace = animate ? (engine === "live" ? 0 : 260) : 0;
   const r = { status: "ok", flags: [], analysis: null, draft: null, prov: null, drafts: [], prep: null, trace, engine };
@@ -660,7 +660,7 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
 
   try {
     // 2. Analyzer
-    setStage("analyzer", "running", engine === "live" ? "Claude is reading the posting" : "reading the posting"); await sleep(pace);
+    setStage("analyzer", "running", engine === "live" ? "Live is reading the posting" : "reading the posting"); await sleep(pace);
     const analysis = await step("analyzer", () => E.analyzer(chk.cleaned, signal), { llm: true, validate: vAnalysis });
     r.analysis = analysis;
     setStage("analyzer", "done", `${analysis.required_skills.length} required skills`);
@@ -673,7 +673,7 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
     // 3. Tailor ⇄ Critic
     let feedback = null, verdict = null, draft = null;
     for (let loop = 0; loop <= MAX_CRITIC_LOOPS; loop++) {
-      setStage("tailor", "running", loop ? "redrafting with critic notes" : (engine === "live" ? "Claude is drafting" : "drafting"), loop + 1); await sleep(pace);
+      setStage("tailor", "running", loop ? "redrafting with critic notes" : (engine === "live" ? "Live is drafting" : "drafting"), loop + 1); await sleep(pace);
       draft = await step("tailor", () => E.tailor(resume, analysis, feedback, signal), { llm: true, validate: vTailor });
       if (inject && loop === 0) { draft = { ...draft, bullets: [FABRICATED, ...draft.bullets] }; r.flags.push("fabrication_injected"); }
       if (inflate && loop === 0) {
@@ -703,7 +703,7 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
     r.draft = draft; r.prov = verdict.prov;
 
     // 4. Coach
-    setStage("coach", "running", engine === "live" ? "Claude is writing questions" : "writing questions"); await sleep(pace);
+    setStage("coach", "running", engine === "live" ? "Live is writing questions" : "writing questions"); await sleep(pace);
     r.prep = await step("coach", () => E.coach(analysis, draft.gaps, signal), { llm: true, validate: vCoach });
     setStage("coach", "done", `${r.prep.questions.length} questions`);
     return r;
@@ -808,10 +808,10 @@ function errorCopy(e) {
   switch (e.code) {
     case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
       return "Live mode isn't allowed in this view. The example engine still works.";
-    case "rate_limited": return "Claude is busy or your usage limit was reached. Try again in a little while.";
-    case "session_expired": return "Your Claude session expired. Sign in again, then rerun.";
-    case "refused": return "Claude declined this input. Try a different resume or posting.";
-    case "invalid_json": case "invalid_output": return "Claude's answer didn't match the expected format after 3 tries, so the copilot stopped instead of guessing.";
+    case "rate_limited": return "Live is busy or your usage limit was reached. Try again in a little while.";
+    case "session_expired": return "Your live session expired. Sign in again, then rerun.";
+    case "refused": return "Live declined this input. Try a different resume or posting.";
+    case "invalid_json": case "invalid_output": return "Live's answer didn't match the expected format after 3 tries, so the copilot stopped instead of guessing.";
     default: return "The live call failed. Try again, or use the example engine.";
   }
 }
@@ -824,10 +824,10 @@ function setEngine(next) {
   engine = next;
   $("eng-example").setAttribute("aria-pressed", String(next === "example"));
   $("eng-live").setAttribute("aria-pressed", String(next === "live"));
-  document.querySelectorAll("[data-kind]").forEach(k => k.textContent = next === "live" ? "Agent · Claude" : "Agent · example");
+  document.querySelectorAll("[data-kind]").forEach(k => k.textContent = next === "live" ? "Agent · Live" : "Agent · example");
   note.classList.remove("err");
   note.textContent = next === "live"
-    ? "Claude (live): real Claude plays the Analyzer, Tailor and Coach. Takes about 20-60 seconds and uses your own Claude account; you'll be asked once. The Critic is still plain code."
+    ? "Live: the real model plays the Analyzer, Tailor and Coach. Takes about 20-60 seconds and uses your own account; you'll be asked once. The Critic is still plain code."
     : "Example engine: rule-based stand-ins for the AI agents, instant and free. The Critic is the same code in both modes.";
 }
 
