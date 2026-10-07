@@ -199,6 +199,38 @@ td .s-ok { color: var(--ok); } td .s-rej { color: var(--warn); } td .s-err { col
 
 footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 75ch; }
 
+/* motion: gentle, a few seconds at most, and fully off for people who ask for reduced motion */
+.ticker { overflow: hidden; border-block: 1px solid var(--rule); padding-block: 10px; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.ticker .track { display: flex; gap: 28px; width: max-content; font: 600 13px/1 var(--f-ui); color: var(--ink); white-space: nowrap; }
+.ticker .track span::before { content: "✓ "; }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes slide { to { transform: translateX(-50%); } }
+  @keyframes sweep { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  header > * { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
+  header > :nth-child(2) { animation-delay: .08s; } header > :nth-child(3) { animation-delay: .16s; }
+  nav.top { animation: rise .6s ease both; }
+  .ticker .track { animation: slide 32s linear infinite; }
+  .ticker:hover .track { animation-play-state: paused; }
+  .reveal { transition: opacity .7s ease, transform .7s cubic-bezier(.2, .7, .2, 1); }
+  .reveal:not(.in) { opacity: 0; transform: translateY(18px); }
+  .bullets li, .skill, .ats-rows li, .drafts li, .qs li { animation: rise .5s cubic-bezier(.2, .7, .2, 1) both; }
+  .bullets li:nth-child(1), .ats-rows li:nth-child(1), .qs li:nth-child(1) { animation-delay: .05s; }
+  .bullets li:nth-child(2), .ats-rows li:nth-child(2), .qs li:nth-child(2) { animation-delay: .12s; }
+  .bullets li:nth-child(3), .ats-rows li:nth-child(3), .qs li:nth-child(3) { animation-delay: .19s; }
+  .bullets li:nth-child(4), .ats-rows li:nth-child(4), .qs li:nth-child(4) { animation-delay: .26s; }
+  .bullets li:nth-child(n+5), .ats-rows li:nth-child(n+5), .qs li:nth-child(n+5) { animation-delay: .33s; }
+  .skill:nth-child(odd) { animation-delay: .1s; } .skill:nth-child(even) { animation-delay: .2s; }
+  .btn, .seg button, .tests > summary { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(26, 26, 26, .14); }
+  .btn:active:not(:disabled) { transform: translateY(0); }
+  .panel, .card { transition: box-shadow .25s ease, transform .25s ease, opacity .7s ease; }
+  .panel:hover { box-shadow: var(--shadow); }
+  .meter > div { transition: width 1s cubic-bezier(.2, .7, .2, 1); }
+  .pipeline li[data-state="running"]::after { background: linear-gradient(90deg, var(--run), var(--rule), var(--run)); background-size: 200% 100%; animation: sweep 1.4s linear infinite; }
+  .pill { animation: rise .45s ease both; }
+}
+
 @media (max-width: 860px) {
   .inputs, .results { grid-template-columns: 1fr; }
   .pipeline { grid-template-columns: 1fr 1fr; }
@@ -221,6 +253,11 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
     <p class="thesis">Paste your resume and a job. Get a tailored resume where every line traces back to your real experience, an honest look at your skill gaps, an ATS-friendly score, and interview prep.</p>
     <div class="hero-stats"><span><b>0</b> invented claims allowed</span><span><b>Plain code</b> does the fact-check</span><span><b>Gaps</b> shown, never faked</span></div>
   </header>
+
+  <div class="ticker" aria-hidden="true"><div class="track">
+    <span>No invented numbers</span><span>No stronger verbs</span><span>Gaps shown honestly</span><span>Contact details removed first</span><span>Fact-checked by plain code</span><span>ATS-friendly score</span>
+    <span>No invented numbers</span><span>No stronger verbs</span><span>Gaps shown honestly</span><span>Contact details removed first</span><span>Fact-checked by plain code</span><span>ATS-friendly score</span>
+  </div></div>
 
   <div class="card">
   <section class="inputs" aria-label="Inputs">
@@ -902,6 +939,22 @@ function errorCopy(e) {
   }
 }
 
+// ---------------------------------------------------------------- motion (presentation only; no logic depends on it)
+const motionOK = !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function animateScore(r) {
+  if (!motionOK || !r.ats) return;
+  const num = $("ats").querySelector(".ats-num"), bar = $("ats").querySelector(".meter > div");
+  if (bar) { const w = bar.style.width; bar.style.width = "0%"; requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = w; })); }
+  if (!num || !num.firstChild) return;
+  const target = r.ats.score, t0 = performance.now(), dur = 900;
+  const tick = (t) => { const k = Math.min(1, (t - t0) / dur); num.firstChild.nodeValue = String(Math.round(target * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+if (motionOK && "IntersectionObserver" in window) {
+  const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.08 });
+  document.querySelectorAll(".card, .results .panel, .pipeline, details.panel, footer").forEach(el => { el.classList.add("reveal"); io.observe(el); });
+}
+
 // ---------------------------------------------------------------- wiring
 let engine = "example", ctl = null, busy = false;
 const note = $("engine-note");
@@ -925,7 +978,7 @@ async function go(animate) {
   $("stop").hidden = !ctl;
   try {
     const r = await run({ resumeText: $("resume").value, jdText: $("job").value, engine, inject: $("inject").checked, inflate: $("inflate").checked, animate, signal: ctl?.signal });
-    render(r);
+    render(r); animateScore(r);
     if (r.error && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(r.error.code)) {
       $("eng-live").disabled = true; setEngine("example");
       note.textContent = "Live mode isn't available here, so the example engine is selected."; note.classList.add("err");
