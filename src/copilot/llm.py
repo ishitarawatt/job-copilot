@@ -10,6 +10,8 @@ import os
 import re
 from typing import Protocol
 
+from .guardrails import skill_in_text
+
 
 class LLMClient(Protocol):
     def complete(self, role: str, system: str, user: str) -> str: ...
@@ -103,8 +105,8 @@ class MockClient:
         resume, analysis = p["resume"], p["analysis"]
         want = [s.lower() for s in analysis["required_skills"] + analysis["nice_to_have"]]
         have_blob = " ".join(resume["bullets"] + resume["skills"]).lower()
-        have_skills = [s for s in analysis["required_skills"] if s.lower() in have_blob]
-        gaps = [s for s in analysis["required_skills"] if s.lower() not in have_blob]
+        have_skills = [s for s in analysis["required_skills"] if skill_in_text(s, have_blob)]
+        gaps = [s for s in analysis["required_skills"] if not skill_in_text(s, have_blob)]
 
         def score(b: str) -> int:
             return sum(1 for s in want if s in b.lower())

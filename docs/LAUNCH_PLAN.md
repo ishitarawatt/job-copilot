@@ -3,6 +3,7 @@
 ## Phase 0: Pre-launch gates (must all be green)
 - [ ] Live-model eval run passes all gates (`fabrication_rate = 0`, `pii_leak_rate = 0`, pass rate ≥ 90%)
 - [ ] Eval set grown to ≥ 50 real, anonymised cases across 5+ role families
+  - Progress: 59 hand-written *synthetic* cases across 6 families (product, data, backend, frontend, ml, ops) plus input handling. They test the harness and guardrails; real anonymised cases are still needed before this box can be ticked.
 - [ ] Human audit of 30 outputs: zero fabrications, gap report agrees with reviewer ≥ 90%
 - [ ] Privacy review: retention policy for resumes, deletion path, no content in traces
 - [ ] Cost and latency measured on live model against targets in the PRD

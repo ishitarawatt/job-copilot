@@ -42,6 +42,6 @@ CI (`.github/workflows/ci.yml`) runs the first two on every push and pull reques
 
 ## Next up (from docs/LAUNCH_PLAN.md and docs/GUARDRAILS.md)
 1. Live eval run and record the results in the README.
-2. Grow the eval set to 50+ anonymised cases across 5+ role families.
+2. Add real, anonymised eval cases (59 synthetic ones exist across 6 role families; see docs/LAUNCH_PLAN.md).
 3. Semantic judge as a second, non-blocking fabrication signal; sampled human audits.
-4. Scan the resume text for injection too (today only the JD is scanned).
+4. Scan the resume text for injection too (today only the JD is scanned), and enforce `MAX_RESUME_BULLETS`.

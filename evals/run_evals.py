@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from copilot.guardrails import check_fabrication, check_summary
+from copilot.guardrails import check_fabrication, check_summary, redact_pii
 from copilot.llm import AnthropicClient, MockClient
 from copilot.monitoring import Tracer
 from copilot.orchestrator import Orchestrator, parse_resume
@@ -48,6 +48,7 @@ def main() -> int:
 
     cases = json.loads(CASES.read_text())
     passed = fabricated = pii_leaks = surfaced = 0
+    by_family: dict[str, list[int]] = {}   # family -> [passed, total]
     print(f"{'case':42} result")
     for case in cases:
         llm = AnthropicClient() if args.live else MockClient(**case.get("llm", {}))
@@ -57,7 +58,9 @@ def main() -> int:
         # Safety metrics measured independently of the pass/fail expectation.
         if result.resume:
             surfaced += 1
-            src = parse_resume(case["resume"])
+            # Compare with what the system was given: the resume after PII redaction. Comparing with the raw
+            # text would count a correctly redacted bullet ("... at [URL]") as untraceable.
+            src = parse_resume(redact_pii(case["resume"]))
             title = result.analysis.title if result.analysis else ""
             if (check_fabrication(result.resume.bullets, result.resume.matched_skills,
                                   src["bullets"], src["skills"])
@@ -70,6 +73,9 @@ def main() -> int:
             pii_leaks += 1
 
         passed += not fails
+        fam = by_family.setdefault(case.get("family", "unlabelled"), [0, 0])
+        fam[0] += not fails
+        fam[1] += 1
         print(f"{case['id']:42} {'PASS' if not fails else 'FAIL: ' + '; '.join(fails)}")
 
     metrics = {
@@ -77,7 +83,8 @@ def main() -> int:
         "fabrication_rate": fabricated / surfaced if surfaced else 0.0,
         "pii_leak_rate": pii_leaks / len(cases),
     }
-    print("\nMETRICS:", json.dumps({k: round(v, 3) for k, v in metrics.items()}))
+    print("\nBY FAMILY:", ", ".join(f"{k} {v[0]}/{v[1]}" for k, v in sorted(by_family.items())))
+    print("METRICS:", json.dumps({k: round(v, 3) for k, v in metrics.items()}))
     gate_fail = [k for k, v in GATES.items() if (metrics[k] < v if k == "pass_rate" else metrics[k] > v)]
     print("GATES:", "ALL PASSED" if not gate_fail else f"FAILED -> {gate_fail}")
     return 1 if gate_fail else 0

@@ -375,6 +375,15 @@ function parseResume(text) {
   return { summary: summary.slice(0, 2).join(" "), skills, bullets };
 }
 
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Whole word or phrase, case-insensitive: "java" is not in "javascript", "rag" not in "leveraged".
+function skillInText(skill, text) {
+  const s = skill.trim().toLowerCase();
+  if (!s) return false;
+  return new RegExp(`(?<![a-z0-9])${escapeRe(s)}(?![a-z0-9])`).test(text.toLowerCase());
+}
+
 const words = (s) => new Set((s.toLowerCase().match(/[a-z0-9]+/g) || []));
 const numbers = (s) => (s.match(/\d[\d,.]*%?/g) || []).map(n => n.replace(/[.,]+$/, ""));
 
@@ -453,14 +462,6 @@ function summaryIssues(summary, resume, jobTitle = "") {
 }
 // <parity:end>
 
-function hasEvidence(skill, blobLower, blobWords) {
-  const s = skill.toLowerCase().trim();
-  if (!s) return false;
-  if (blobLower.includes(s)) return true;
-  const parts = (s.match(/[a-z0-9]+/g) || []).filter(w => w.length > 1);
-  return parts.length > 0 && parts.every(w => blobWords.has(w));
-}
-
 // The Critic: deterministic, identical in both engines.
 function critic(resume, draft, jobTitle = "") {
   const issues = [];
@@ -474,9 +475,8 @@ function critic(resume, draft, jobTitle = "") {
     }
   });
   const blob = [...resume.bullets, ...resume.skills].join(" ");
-  const blobLower = blob.toLowerCase(), blobWords = words(blob);
   for (const s of draft.matched_skills) {
-    if (!hasEvidence(s, blobLower, blobWords)) issues.push(`Claims "${s}" but your resume shows no evidence of it.`);
+    if (!skillInText(s, blob)) issues.push(`Claims "${s}" but your resume shows no evidence of it.`);
   }
   issues.push(...summaryIssues(draft.summary, resume, jobTitle));
   if (!draft.bullets.length) issues.push("The draft has no bullets.");
@@ -506,8 +506,8 @@ const example = {
   tailor(resume, analysis) {
     const want = [...analysis.required_skills, ...analysis.nice_to_have].map(s => s.toLowerCase());
     const blob = [...resume.bullets, ...resume.skills].join(" ").toLowerCase();
-    const matched = analysis.required_skills.filter(s => blob.includes(s.toLowerCase()));
-    const gaps = analysis.required_skills.filter(s => !blob.includes(s.toLowerCase()));
+    const matched = analysis.required_skills.filter(s => skillInText(s, blob));
+    const gaps = analysis.required_skills.filter(s => !skillInText(s, blob));
     const score = (b) => want.filter(s => b.toLowerCase().includes(s)).length;
     const bullets = [...resume.bullets].sort((a, b) => score(b) - score(a));
     const top = matched.slice(0, 3).join(", ") || "relevant experience";

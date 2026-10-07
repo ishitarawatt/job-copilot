@@ -21,8 +21,8 @@ PYTHONPATH=src python -m copilot.cli --resume examples/resume.txt --job examples
 
 ## Verify
 ```bash
-python -m pytest -q                          # 47 unit tests
-PYTHONPATH=src python evals/run_evals.py     # 12 eval cases + safety gates (non-zero exit on failure)
+python -m pytest -q                          # 62 unit tests
+PYTHONPATH=src python evals/run_evals.py     # 59 eval cases across 6 role families + safety gates (non-zero exit on failure)
 ```
 
 > The offline runs use a deterministic **mock model** so the harness, guardrails and failure paths are testable and free. They validate the system, **not live-model quality**. Run `evals/run_evals.py --live` before trusting results.

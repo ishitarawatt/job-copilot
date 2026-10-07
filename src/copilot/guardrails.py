@@ -150,6 +150,18 @@ _INFLATION_FAMILIES = {
 _WORD_TO_FAMILY = {w: fam for fam, words in _INFLATION_FAMILIES.items() for w in words}
 
 
+def skill_in_text(skill: str, text: str) -> bool:
+    """True if `skill` appears in `text` as a whole word or phrase, case-insensitively.
+
+    Substring matching would let "java" be evidenced by "javascript", "rag" by "leveraged" and "excel" by
+    "excellent", so the Critic would approve a skill the resume never shows.
+    """
+    s = skill.strip().lower()
+    if not s:
+        return False
+    return re.search(rf"(?<![a-z0-9]){re.escape(s)}(?![a-z0-9])", text.lower()) is not None
+
+
 def _tokens(s: str) -> set[str]:
     return set(_WORD_RE.findall(s.lower()))
 
@@ -198,9 +210,9 @@ def check_fabrication(out_bullets: list[str], matched_skills: list[str],
         problem = _bullet_problem(b, source_bullets)
         if problem:
             issues.append(problem)
-    blob = " ".join(source_bullets + source_skills).lower()
+    blob = " ".join(source_bullets + source_skills)
     for s in matched_skills:
-        if s.lower() not in blob:
+        if not skill_in_text(s, blob):
             issues.append(f"Claimed skill with no evidence in resume: {s!r}")
     return issues
 

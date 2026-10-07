@@ -2,7 +2,8 @@ import json
 
 import pytest
 
-from copilot.guardrails import (check_fabrication, check_job_description, check_summary, redact_pii)
+from copilot.guardrails import (check_fabrication, check_job_description, check_summary, redact_pii,
+                                skill_in_text)
 from copilot.llm import MockClient, extract_json
 from copilot.monitoring import Tracer
 from copilot.orchestrator import Orchestrator, parse_resume
@@ -204,3 +205,34 @@ def test_pii_in_resume_bullet_not_in_output():
               "- Wrote SQL reports for the sales team\n")
     res = Orchestrator(MockClient(), Tracer(None)).run(resume, JOB)
     assert "asha.dev" not in json.dumps(res.to_dict())
+
+
+# --- G1d: skill evidence is whole-word, not substring ---------------------------------------------
+@pytest.mark.parametrize("skill,text,expected", [
+    ("java", "Migrated the codebase from javascript to typescript", False),
+    ("javascript", "Migrated the codebase from javascript to typescript", True),
+    ("rag", "Leveraged an llm to summarise tickets", False),
+    ("rag", "Built rag pipelines for support", True),
+    ("excel", "Delivered excellent customer outcomes", False),
+    ("excel", "Built Excel models, weekly.", True),
+    ("a/b testing", "Ran A/B testing on the checkout banner", True),
+    ("go-to-market", "Led the go-to-market plan", True),
+    ("product management", "Led product and management reviews", False),
+    ("api design", "Wrote API designs for the billing service", False),   # inflected forms do not match (fails closed)
+    ("  SQL  ", "sql everywhere", True),
+    ("", "anything at all", False),
+])
+def test_skill_in_text_is_whole_word(skill, text, expected):
+    assert skill_in_text(skill, text) is expected
+
+
+def test_critic_rejects_skill_only_evidenced_by_a_longer_word():
+    src_bullets, src_skills = ["Migrated the codebase from javascript to typescript"], ["javascript"]
+    assert check_fabrication(src_bullets, ["java"], src_bullets, src_skills)
+    assert check_fabrication(src_bullets, ["javascript"], src_bullets, src_skills) == []
+
+
+def test_gap_report_does_not_hide_a_gap_behind_a_longer_word():
+    resume = "Tara Nair\nEngineer with three years on web apps.\nSkills: javascript\n- Built a javascript admin console for support agents\n"
+    res = Orchestrator(MockClient(), Tracer(None)).run(resume, "Software Engineer\nRequirements: java, javascript.")
+    assert res.status == "ok" and res.resume.gaps == ["java"] and res.resume.matched_skills == ["javascript"]

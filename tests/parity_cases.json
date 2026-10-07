@@ -222,5 +222,71 @@
    "skills": [],
    "title": ""
   }
+ ],
+ "skills": [
+  {
+   "skill": "java",
+   "text": "Migrated the codebase from javascript to typescript"
+  },
+  {
+   "skill": "javascript",
+   "text": "Migrated the codebase from javascript to typescript"
+  },
+  {
+   "skill": "rag",
+   "text": "Leveraged an llm to summarise tickets"
+  },
+  {
+   "skill": "rag",
+   "text": "Built rag pipelines for support"
+  },
+  {
+   "skill": "excel",
+   "text": "Delivered excellent customer outcomes"
+  },
+  {
+   "skill": "excel",
+   "text": "Built Excel models, weekly."
+  },
+  {
+   "skill": "sql",
+   "text": "Wrote SQL, Python and more"
+  },
+  {
+   "skill": "a/b testing",
+   "text": "Ran A/B testing on the checkout banner"
+  },
+  {
+   "skill": "go-to-market",
+   "text": "Led the go-to-market plan for two launches"
+  },
+  {
+   "skill": "product management",
+   "text": "Product Management and roadmapping"
+  },
+  {
+   "skill": "product management",
+   "text": "Led product and management reviews"
+  },
+  {
+   "skill": "api design",
+   "text": "Wrote API designs for the billing service"
+  },
+  {
+   "skill": "node.js",
+   "text": "Built services in Node.js and Vue.js"
+  },
+  {
+   "skill": "c++",
+   "text": "Wrote c++ and c# services"
+  },
+  {
+   "skill": "  SQL  ",
+   "text": "sql everywhere"
+  },
+  {
+   "skill": "",
+   "text": "anything at all"
+  }
  ]
 }

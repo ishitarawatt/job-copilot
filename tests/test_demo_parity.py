@@ -25,6 +25,7 @@ console.log(JSON.stringify({
   patterns: INJECTION_PATTERNS,
   pii: cases.pii.map(redactPII),
   jd: cases.jd.map(checkJob),
+  skills: cases.skills.map(c => skillInText(c.skill, c.text)),
   bullets: cases.bullets.map(c => provenance(c.bullet, c.sources).supported),
   summaries: cases.summaries.map(c => summaryIssues(
     c.summary, { summary: c.source_summary, bullets: c.bullets, skills: c.skills }, c.title).length),
@@ -75,6 +76,11 @@ def test_job_description_check_matches(js):
         py.append({"ok": c.ok, "cleaned": c.cleaned_jd, "flags": c.flags})
     got = [{"ok": r["ok"], "cleaned": r["cleaned"], "flags": r["flags"]} for r in js["jd"]]
     _same("check_job_description", CASES["jd"], py, got)
+
+
+def test_skill_evidence_matches(js):
+    py = [g.skill_in_text(c["skill"], c["text"]) for c in CASES["skills"]]
+    _same("skill_in_text", [(c["skill"], c["text"]) for c in CASES["skills"]], py, js["skills"])
 
 
 def test_bullet_verdicts_match(js):
