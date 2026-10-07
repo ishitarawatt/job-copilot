@@ -13,28 +13,27 @@
 /* Layout: a working desk. Inputs on top, the agent pipeline as a strip, then the proofed resume
    (left, like a marked-up sheet) beside the role, critic and interview prep (right). Trace last. */
 :root {
-  /* Palette (sampled from the supplied swatches): FEC5BB FCD5CE FAE1DD F8EDEB E8E8E4 D8E2DC ECE4DB FFE5D9 FFD7BA FEC89A.
-     Only these ten, plus neutral near-black text and a neutral translucent-black line colour (every swatch is a pastel,
-     so text and outlines need a dark neutral to stay readable). A deliberately single, light look: no dark mode. */
-  --paper: #FAE1DD;
-  --sheet: #F8EDEB;
-  --field: #E8E8E4;
+  /* Golden Summer Fields: CCD5AE, E9EDC9, FEFAE0, FAEDCD, D4A373. Only these five, plus a neutral near-black for text.
+     A deliberately single, light look: no dark-mode override, so the palette is never altered. */
+  --paper: #E9EDC9;
+  --sheet: #FEFAE0;
+  --field: #E9EDC9;
   --ink: #1a1a1a;
-  --muted: #2e2e2e;
-  --rule: rgba(26, 26, 26, .2);
-  --accent: #FEC89A;
+  --muted: #4a4a4a;
+  --rule: #CCD5AE;
+  --accent: #D4A373;
   --accent-ink: #1a1a1a;
-  --mark: #FFD7BA;
+  --mark: #CCD5AE;
   --mark-ink: #1a1a1a;
   --ok: #1a1a1a;
-  --ok-bg: #D8E2DC;
+  --ok-bg: #CCD5AE;
   --bad: #1a1a1a;
-  --bad-bg: #FEC5BB;
+  --bad-bg: #D4A373;
   --warn: #1a1a1a;
-  --warn-bg: #FFD7BA;
-  --run: #FEC89A;
-  --run-bg: #FFE5D9;
-  --shadow: 0 1px 2px rgba(26, 26, 26, .06), 0 12px 32px rgba(26, 26, 26, .09);
+  --warn-bg: #FAEDCD;
+  --run: #D4A373;
+  --run-bg: #FAEDCD;
+  --shadow: 0 1px 2px rgba(26, 26, 26, .06), 0 12px 32px rgba(26, 26, 26, .08);
 
   --f-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-doc: "Source Serif 4", Georgia, "Times New Roman", serif;
@@ -83,9 +82,8 @@ textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px
 .toggle { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
 .toggle input { width: 16px; height: 16px; flex: none; margin: 2px 0 0; accent-color: var(--bad); }
 .btn { border: 0; border-radius: 999px; padding: 13px 24px; font: 600 14px/1 var(--f-ui); cursor: pointer; background: var(--accent); color: var(--accent-ink); }
-.btn:not(.ghost) { border: 1.5px solid var(--ink); }
 .btn:disabled { opacity: .55; cursor: progress; }
-.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
 .note { font-size: 12.5px; color: var(--muted); flex-basis: 100%; }
 .note.err { color: var(--bad); }
 
@@ -172,7 +170,7 @@ details.panel > summary { cursor: pointer; font: 600 15px/1.3 var(--f-ui); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
 .meter { height: 8px; border-radius: 99px; background: var(--rule); overflow: hidden; }
-.meter > div { height: 100%; background: var(--run); border-radius: 99px; border-right: 1.5px solid var(--ink); }
+.meter > div { height: 100%; background: var(--run); border-radius: 99px; }
 
 /* critic */
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
