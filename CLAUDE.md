@@ -38,7 +38,8 @@ python -m pytest -q
 PYTHONPATH=src python evals/run_evals.py          # add --live (needs ANTHROPIC_API_KEY) for the real model
 PYTHONPATH=src python -m copilot.cli --resume examples/resume.txt --job examples/job.txt
 ```
-CI (`.github/workflows/ci.yml`) runs the first two on every push and pull request.
+CI (`.github/workflows/ci.yml`) runs the first two on every push and pull request. `live-evals.yml` is manual only (it needs the
+`ANTHROPIC_API_KEY` repository secret and costs money); `--live` skips the cases that have an `llm` fault-injection block.
 
 ## Next up (from docs/LAUNCH_PLAN.md and docs/GUARDRAILS.md)
 1. Live eval run and record the results in the README.

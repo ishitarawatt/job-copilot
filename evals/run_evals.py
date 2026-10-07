@@ -1,7 +1,7 @@
 """Eval harness. Runs every case in cases.json and reports pass rate plus safety metrics.
 
     PYTHONPATH=src python evals/run_evals.py            # offline mock model
-    PYTHONPATH=src python evals/run_evals.py --live     # real model (needs ANTHROPIC_API_KEY)
+    PYTHONPATH=src python evals/run_evals.py --live     # real model (needs ANTHROPIC_API_KEY); skips mock-only cases
 
 Exit code is non-zero if any gate fails, so this can run in CI.
 """
@@ -47,6 +47,12 @@ def main() -> int:
     args = ap.parse_args()
 
     cases = json.loads(CASES.read_text())
+    if args.live:
+        # Cases with an "llm" block inject faults into the mock model (a fabricated or inflated draft) to exercise the
+        # Critic. A real model won't misbehave on cue, so they can't be graded live. Skip them and say so.
+        mock_only = [c for c in cases if "llm" in c]
+        cases = [c for c in cases if "llm" not in c]
+        print(f"LIVE MODE: skipping {len(mock_only)} mock-only fault-injection cases; running {len(cases)}.\n")
     passed = fabricated = pii_leaks = surfaced = 0
     by_family: dict[str, list[int]] = {}   # family -> [passed, total]
     print(f"{'case':42} result")

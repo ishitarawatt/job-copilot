@@ -21,9 +21,11 @@ PYTHONPATH=src python -m copilot.cli --resume examples/resume.txt --job examples
 
 ## Verify
 ```bash
-python -m pytest -q                          # 62 unit tests
+python -m pytest -q                          # 63 unit tests
 PYTHONPATH=src python evals/run_evals.py     # 59 eval cases across 6 role families + safety gates (non-zero exit on failure)
 ```
+
+To run the live evals in GitHub instead of locally, add a repository secret `ANTHROPIC_API_KEY`, then use Actions → Live evals → Run workflow. It skips the 14 mock-only fault-injection cases and keeps the output as a downloadable artifact.
 
 > The offline runs use a deterministic **mock model** so the harness, guardrails and failure paths are testable and free. They validate the system, **not live-model quality**. Run `evals/run_evals.py --live` before trusting results.
 
@@ -39,7 +41,7 @@ evals/                 cases.json + run_evals.py (pass rate, fabrication rate, P
 tests/                 unit tests
 examples/              sample resume and job description
 demo/index.html        browser demo (example engine + live Claude mode)
-.github/workflows/     CI: unit tests (incl. demo/Python parity) and evals
+.github/workflows/     CI on every push, and a manual Live evals workflow
 CLAUDE.md              context for Claude in new chats
 ```
 

@@ -1,0 +1,47 @@
+name: Live evals
+
+# Manual only: this calls the real model and costs money. Run it before launching and after any model or prompt change.
+# Needs a repository secret named ANTHROPIC_API_KEY (Settings > Secrets and variables > Actions).
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model id (leave empty for the default, claude-sonnet-5-5)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  live-evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Check the secret is set
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Add a repository secret named ANTHROPIC_API_KEY first."
+            exit 1
+          fi
+      - name: Run the evals against the real model
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COPILOT_MODEL: ${{ inputs.model }}
+        run: |
+          [ -n "$COPILOT_MODEL" ] || unset COPILOT_MODEL
+          set -o pipefail
+          PYTHONPATH=src python evals/run_evals.py --live | tee live-eval-results.txt
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-eval-results
+          path: live-eval-results.txt
