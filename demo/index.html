@@ -221,6 +221,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
       <button type="button" id="eng-live" aria-pressed="false" disabled>Claude (live)</button>
     </div>
     <label class="toggle" for="inject"><input type="checkbox" id="inject"> Inject a made-up bullet into the first draft</label>
+    <label class="toggle" for="inflate"><input type="checkbox" id="inflate"> Strengthen a verb in the first draft ("Owned" becomes "Led")</label>
     <button class="btn" type="button" id="run">Run agents</button>
     <button class="btn ghost" type="button" id="stop" hidden>Stop</button>
     <button class="btn ghost" type="button" id="reset">Reset example</button>
@@ -254,8 +255,8 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
   </section>
 
   <footer>
-    <p>How it stays truthful: every tailored bullet must match one of your original bullets (80% word overlap or more) and may not add any number. Every claimed skill needs evidence in your resume. If the Critic rejects a draft, the Tailor gets one retry with the Critic's notes; if it still fails, the draft is withheld and sent for human review.</p>
-    <p>Live mode sends your text to Claude using your own Claude account and asks your permission first. Phone numbers and emails are removed before anything is sent.</p>
+    <p>How it stays truthful: every tailored bullet must match one of your original bullets (80% word overlap or more) and may not add any number or a stronger claim ("Used" becoming "Led"). The summary is held to the same rules. Every claimed skill needs evidence in your resume. If the Critic rejects a draft, the Tailor gets one retry with the Critic's notes; if it still fails, the draft is withheld and sent for human review.</p>
+    <p>Live mode sends your text to Claude using your own Claude account and asks your permission first. Phone numbers, emails, links, @handles and street addresses are removed before anything is sent.</p>
   </footer>
 </div>
 
@@ -290,39 +291,75 @@ Responsibilities:
 Requirements: Python, SQL, product management, data analysis, evals, user research.
 Nice to have: Kubernetes, go-to-market experience.`;
 
+// ---------------------------------------------------------------- guardrails (port of guardrails.py)
+// Everything between the parity markers must stay free of DOM access: tests/test_demo_parity.py runs it in
+// node and compares it with src/copilot/guardrails.py. Change one side and the test tells you to change the other.
+// <parity:begin>
 const FABRICATED = "Led a 40-person team to deliver a $12M revenue increase";
 
-// ---------------------------------------------------------------- guardrails (port of guardrails.py)
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
+const URL_RE = /(?:https?:\/\/|www\.)\S+|\b(?:linkedin|github|gitlab|twitter|x)\.com\/\S+/gi;
+const HANDLE_RE = /(?<![\w@.])@[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*/g;
+const ADDRESS_RE = /\b\d{1,5}\s+(?:[A-Z][\w.'-]*\s+){1,3}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Ln|Boulevard|Blvd|Drive|Dr|Nagar|Marg)\b\.?/g;
 const PHONE_RE = /(?<!\d)(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{3,5}\)?[\s.-]?){2,3}\d{2,4}(?!\d)/g;
-const INJECTION_RE = new RegExp([
-  String.raw`ignore (all |any )?(the )?(previous|prior|above) (instructions|prompts?)`,
-  String.raw`disregard (all |any )?(the )?(previous|prior|above)`,
+
+const INJECTION_PATTERNS = [
+  String.raw`ignore (all |any )?(the )?(previous|prior|above|earlier) (instructions|prompts?|rules)`,
+  String.raw`disregard (all |any )?(the )?(previous|prior|above|earlier)`,
+  String.raw`forget (all |any |everything |the )*(previous|prior|above|earlier|your)\b`,
+  String.raw`forget everything`,
+  String.raw`override (the |your )?(previous|prior|system) (instructions|rules|prompt)`,
+  String.raw`(do not|don't|stop) follow(ing)? (the |any |your )?(previous|prior|above|earlier|original)`,
+  String.raw`new instructions?\s*:`,
   String.raw`you are now\b`,
+  String.raw`pretend (to be|you are|you're)`,
+  String.raw`jailbreak|developer mode|\bdan mode\b`,
   String.raw`system prompt`,
   String.raw`reveal (your|the) (instructions|prompt)`,
-  String.raw`(rate|rank|score) (this|the) (candidate|resume) (as )?(10|perfect|highest)`,
-  String.raw`<\s*\/?\s*(system|assistant)\s*>`,
-].join("|"), "i");
+  String.raw`(rate|rank|score|mark|grade) (this|the|that) (candidate|applicant|resume)\b.{0,20}\b(10|perfect|highest|best|excellent|top)`,
+  String.raw`(always|must|should|just) (approve|recommend|shortlist) (this|the|that) (candidate|applicant|resume)`,
+  String.raw`<\s*/?\s*(system|assistant)\s*>`,
+  String.raw`\[/?inst\]|<<\s*/?\s*sys\s*>>|###\s*(system|instruction)`,
+  String.raw`^\s*(system|assistant)\s*:`,
+  String.raw`ignora (todas )?las instrucciones (anteriores|previas)`,
+  String.raw`ignorez? (toutes )?les instructions (precedentes|ci-dessus)`,
+  String.raw`ignoriere (alle )?(vorherigen|obigen|bisherigen|fruheren) anweisungen`,
+];
+const INJECTION_RE = new RegExp(INJECTION_PATTERNS.join("|"), "i");
+const INVISIBLE_RE = /[​‌‍⁠﻿­]/g;
 
-const redactPII = (t) => t.replace(EMAIL_RE, "[EMAIL]").replace(PHONE_RE, "[PHONE]");
+// Fold cosmetic obfuscation (zero-width characters, full-width letters, accents) so it can't hide a match.
+function normalize(s) {
+  return s.normalize("NFKD").replace(INVISIBLE_RE, "").replace(/\p{Mn}/gu, "").replace(/[ \t]+/g, " ");
+}
+
+const redactPII = (t) => t.replace(EMAIL_RE, "[EMAIL]").replace(URL_RE, "[URL]").replace(HANDLE_RE, "[HANDLE]")
+  .replace(ADDRESS_RE, "[ADDRESS]").replace(PHONE_RE, "[PHONE]");
 
 function checkJob(jd) {
   jd = jd.trim();
   const flags = [];
   if (jd.length < 40) return { ok: false, cleaned: jd, flags: ["jd_too_short"] };
   if (jd.length > 12000) { jd = jd.slice(0, 12000); flags.push("jd_truncated"); }
-  const kept = [];
-  for (const line of jd.split("\n")) {
-    if (INJECTION_RE.test(line)) { flags.push("prompt_injection_removed"); continue; }
-    kept.push(line);
+  const lines = jd.split(/\r\n|\r|\n/);
+  const norm = lines.map(normalize);
+  const hits = new Set();
+  norm.forEach((n, i) => { if (INJECTION_RE.test(n)) hits.add(i); });
+  const drop = new Set(hits);
+  for (let i = 0; i < norm.length - 1; i++) {
+    // An instruction split across two lines. Only pair lines that are innocent on their own, otherwise a
+    // clean line next to an injected one would be dropped with it.
+    if (!hits.has(i) && !hits.has(i + 1) && INJECTION_RE.test(norm[i] + " " + norm[i + 1])) { drop.add(i); drop.add(i + 1); }
   }
-  return { ok: true, cleaned: kept.join("\n"), flags: [...new Set(flags)] };
+  if (drop.size) flags.push("prompt_injection_removed");
+  const kept = lines.filter((_, i) => !drop.has(i));
+  return { ok: true, cleaned: kept.join("\n"), flags: [...new Set(flags)].sort() };
 }
 
 function parseResume(text) {
   const bullets = [], summary = [];
   let skills = [];
+  const MARKERS = ["[EMAIL]", "[PHONE]", "[URL]", "[HANDLE]", "[ADDRESS]"];
   for (const raw of text.split("\n")) {
     const line = raw.trim();
     if (!line) continue;
@@ -330,8 +367,8 @@ function parseResume(text) {
       skills = line.split(":").slice(1).join(":").split(",").map(s => s.trim()).filter(Boolean);
     } else if ("-*•".includes(line[0])) {
       bullets.push(line.replace(/^[-*•\s]+/, "").trim());
-    } else if (!line.endsWith(":") && !line.includes("[EMAIL]") && !line.includes("[PHONE]")
-               && !line.includes("|") && line.split(/\s+/).length > 3) {
+    } else if (!line.endsWith(":") && !line.includes("|") && line.split(/\s+/).length > 3
+               && !MARKERS.some(m => line.includes(m))) {
       summary.push(line);
     }
   }
@@ -341,22 +378,80 @@ function parseResume(text) {
 const words = (s) => new Set((s.toLowerCase().match(/[a-z0-9]+/g) || []));
 const numbers = (s) => (s.match(/\d[\d,.]*%?/g) || []).map(n => n.replace(/[.,]+$/, ""));
 
-// Which source bullet does this output bullet come from?
+// Words that make a claim bigger than it was, grouped so "lead/led/leading" count as one. A bullet or summary
+// that adds one the source lacks has been strengthened ("Used SQL dashboards" -> "Led SQL dashboards").
+const INFLATION_FAMILIES = {
+  lead: ["lead", "led", "leads", "leading"],
+  manage: ["manage", "managed", "manages", "managing"],
+  direct: ["directed", "directing", "directs"],
+  own: ["owned", "owns", "owning", "ownership"],
+  spearhead: ["spearhead", "spearheaded", "spearheading"],
+  head: ["head", "headed", "heading"],
+  architect: ["architected", "architecting"],
+  found: ["founded", "founding", "cofounded"],
+  drive: ["drove", "driven", "drives", "driving"],
+  launch: ["launched", "launching"],
+  pioneer: ["pioneer", "pioneered"],
+  oversee: ["oversee", "oversaw", "overseen", "overseeing"],
+  champion: ["championed"],
+  sole: ["sole", "solely", "handedly"],
+  entire: ["entire"],
+  global: ["global", "worldwide"],
+  enterprise: ["enterprise"],
+  senior: ["senior"],
+  principal: ["principal"],
+  director: ["director"],
+  vp: ["vp"],
+  chief: ["chief"],
+};
+const WORD_TO_FAMILY = new Map(Object.entries(INFLATION_FAMILIES).flatMap(([fam, ws]) => ws.map(w => [w, fam])));
+
+// Inflation families present in `out` but in none of the allowed source word sets.
+function inflation(out, ...sources) {
+  const have = new Set();
+  sources.forEach(ts => ts.forEach(w => { if (WORD_TO_FAMILY.has(w)) have.add(WORD_TO_FAMILY.get(w)); }));
+  const fresh = new Set();
+  out.forEach(w => { const f = WORD_TO_FAMILY.get(w); if (f && !have.has(f)) fresh.add(f); });
+  return [...fresh].sort();
+}
+
+// Which source bullet does this output bullet come from, and is it faithful to it?
 function provenance(bullet, sources) {
-  const b = words(bullet);
-  let best = { idx: -1, overlap: 0, newNumbers: numbers(bullet) };
+  const b = words(bullet), bNums = numbers(bullet);
+  let best = null, strengthened = null;
   sources.forEach((src, idx) => {
     const s = words(src);
     let hit = 0; b.forEach(w => { if (s.has(w)) hit++; });
     const overlap = b.size ? hit / b.size : 1;
     const srcNums = new Set(numbers(src));
-    const newNumbers = numbers(bullet).filter(n => !srcNums.has(n));
-    const better = overlap > best.overlap || (overlap === best.overlap && newNumbers.length < best.newNumbers.length);
-    if (better) best = { idx, overlap, newNumbers };
+    const newNumbers = bNums.filter(n => !srcNums.has(n));
+    const inflated = inflation(b, s);
+    const close = overlap >= 0.8 && newNumbers.length === 0;
+    if (close && inflated.length) strengthened = inflated;
+    const cand = { idx, overlap, newNumbers, supported: close && inflated.length === 0 };
+    const better = !best || (cand.supported !== best.supported ? cand.supported
+      : cand.overlap !== best.overlap ? cand.overlap > best.overlap
+      : cand.newNumbers.length < best.newNumbers.length);
+    if (better) best = cand;
   });
-  best.supported = best.overlap >= 0.8 && best.newNumbers.length === 0;
+  if (!best) best = { idx: -1, overlap: 0, newNumbers: bNums, supported: b.size === 0 };
+  best.strengthened = best.supported ? null : strengthened;
   return best;
 }
+
+// The summary is free text, so hold it to the same two rules: no new numbers, no stronger claims.
+// The job title is allowed because the summary legitimately names the target role.
+function summaryIssues(summary, resume, jobTitle = "") {
+  const sourceText = [resume.summary || "", ...resume.bullets, ...resume.skills].join(" ");
+  const allowedNums = new Set([...numbers(sourceText), ...numbers(jobTitle)]);
+  const issues = [];
+  const newNums = [...new Set(numbers(summary))].filter(n => !allowedNums.has(n)).sort();
+  if (newNums.length) issues.push(`The summary adds numbers that are not in your resume (${newNums.join(", ")}).`);
+  const inflated = inflation(words(summary), words(sourceText), words(jobTitle));
+  if (inflated.length) issues.push(`The summary makes stronger claims than your resume (adds: ${inflated.join(", ")}).`);
+  return issues;
+}
+// <parity:end>
 
 function hasEvidence(skill, blobLower, blobWords) {
   const s = skill.toLowerCase().trim();
@@ -367,13 +462,14 @@ function hasEvidence(skill, blobLower, blobWords) {
 }
 
 // The Critic: deterministic, identical in both engines.
-function critic(resume, draft) {
+function critic(resume, draft, jobTitle = "") {
   const issues = [];
   const prov = draft.bullets.map(b => provenance(b, resume.bullets));
   prov.forEach((p, i) => {
     if (!p.supported) {
-      const why = p.newNumbers.length ? `adds numbers not in your resume (${p.newNumbers.join(", ")})`
-                                      : `only ${Math.round(p.overlap * 100)}% matches any of your bullets`;
+      const why = p.strengthened ? `makes a stronger claim than your resume (adds: ${p.strengthened.join(", ")})`
+                : p.newNumbers.length ? `adds numbers not in your resume (${p.newNumbers.join(", ")})`
+                : `only ${Math.round(p.overlap * 100)}% matches any of your bullets`;
       issues.push(`Bullet "${draft.bullets[i]}" ${why}.`);
     }
   });
@@ -382,6 +478,7 @@ function critic(resume, draft) {
   for (const s of draft.matched_skills) {
     if (!hasEvidence(s, blobLower, blobWords)) issues.push(`Claims "${s}" but your resume shows no evidence of it.`);
   }
+  issues.push(...summaryIssues(draft.summary, resume, jobTitle));
   if (!draft.bullets.length) issues.push("The draft has no bullets.");
   return { approved: issues.length === 0, issues, prov };
 }
@@ -521,7 +618,7 @@ function resetStages() {
 // ---------------------------------------------------------------- orchestrator (port of orchestrator.py)
 const MAX_RETRIES = 2, MAX_CRITIC_LOOPS = 1;
 
-async function run({ resumeText, jdText, engine, inject, animate, signal }) {
+async function run({ resumeText, jdText, engine, inject, inflate, animate, signal }) {
   const E = engine === "live" ? live : example;
   const engineName = engine === "live" ? "claude" : "example";
   const trace = [];
@@ -579,10 +676,18 @@ async function run({ resumeText, jdText, engine, inject, animate, signal }) {
       setStage("tailor", "running", loop ? "redrafting with critic notes" : (engine === "live" ? "Claude is drafting" : "drafting"), loop + 1); await sleep(pace);
       draft = await step("tailor", () => E.tailor(resume, analysis, feedback, signal), { llm: true, validate: vTailor });
       if (inject && loop === 0) { draft = { ...draft, bullets: [FABRICATED, ...draft.bullets] }; r.flags.push("fabrication_injected"); }
+      if (inflate && loop === 0) {
+        // same facts, bigger claim: put "Led" on the first bullet that does not already say it
+        const i = draft.bullets.findIndex(b => inflation(words("Led " + b.split(" ").slice(1).join(" ")), words(b)).length);
+        if (i >= 0) {
+          draft = { ...draft, bullets: draft.bullets.map((b, j) => j === i ? ("Led " + b.split(" ").slice(1).join(" ")).trim() : b) };
+          r.flags.push("verb_strengthened");
+        }
+      }
       setStage("tailor", "done", `draft ${loop + 1} · ${draft.bullets.length} bullets`, loop + 1);
 
       setStage("critic", "running", "verifying every claim", loop + 1); await sleep(pace);
-      verdict = await step("critic", () => critic(resume, draft));
+      verdict = await step("critic", () => critic(resume, draft, analysis.title));
       trace[trace.length - 1].result = verdict.approved ? "approved" : "rejected";
       r.drafts.push({ n: loop + 1, approved: verdict.approved, issues: verdict.issues });
       if (verdict.approved) { setStage("critic", "done", "every claim traced", loop + 1); break; }
@@ -636,7 +741,7 @@ function render(r) {
     r.draft.bullets.forEach((b, i) => {
       const p = r.prov[i];
       ul.append(h("li", {}, h("span", { class: "text" }, b),
-        h("span", { class: "prov" }, `↳ traced to your bullet ${p.idx + 1} · ${Math.round(p.overlap * 100)}% wording match · no new numbers`)));
+        h("span", { class: "prov" }, `↳ traced to your bullet ${p.idx + 1} · ${Math.round(p.overlap * 100)}% wording match · no new numbers · no stronger wording`)));
     });
     sheet.append(ul);
   } else if (r.status === "needs_human" && r.drafts.length) {
@@ -733,7 +838,7 @@ async function go(animate) {
   ctl = engine === "live" ? new AbortController() : null;
   $("stop").hidden = !ctl;
   try {
-    const r = await run({ resumeText: $("resume").value, jdText: $("job").value, engine, inject: $("inject").checked, animate, signal: ctl?.signal });
+    const r = await run({ resumeText: $("resume").value, jdText: $("job").value, engine, inject: $("inject").checked, inflate: $("inflate").checked, animate, signal: ctl?.signal });
     render(r);
     if (r.error && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(r.error.code)) {
       $("eng-live").disabled = true; setEngine("example");
@@ -748,7 +853,7 @@ $("eng-example").addEventListener("click", () => setEngine("example"));
 $("eng-live").addEventListener("click", () => setEngine("live"));
 $("run").addEventListener("click", () => go(true));
 $("stop").addEventListener("click", () => ctl?.abort());
-$("reset").addEventListener("click", () => { $("resume").value = SAMPLE_RESUME; $("job").value = SAMPLE_JOB; $("inject").checked = false; setEngine("example"); go(true); });
+$("reset").addEventListener("click", () => { $("resume").value = SAMPLE_RESUME; $("job").value = SAMPLE_JOB; $("inject").checked = false; $("inflate").checked = false; setEngine("example"); go(true); });
 
 $("resume").value = SAMPLE_RESUME;
 $("job").value = SAMPLE_JOB;

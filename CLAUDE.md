@@ -1,30 +1,47 @@
-# Support Desk: context for Claude
+# Job Application Copilot: context for Claude
 
-Multi-agent customer-support resolver in Python. Part of the AI-PM-portfolio repo.
-Work only inside `support-desk/` unless asked otherwise.
+Multi-agent Python app that tailors a resume to a job posting without inventing experience.
+Analyzer → Tailor ⇄ Critic → Coach. The Critic is deterministic code, not a model, and unverifiable
+output is withheld (`needs_human`), never shown.
 
 ## Core principle
-LLMs propose, code disposes. No model output can move money on its own.
+LLMs propose, code disposes. No model output reaches the user unless the Critic approves it.
 
-## Architecture
-Input guardrails → Triage (LLM) → routing → Knowledge → Resolver (LLM) ⇄ Policy Guard (code) + QA Critic (code) → Executor | Approval queue | Human
-- `src/supportdesk/policy.py`: refund window 30 days, delivered-only, no double refunds, $100 auto-limit, ownership, action allow-list
-- `src/supportdesk/guardrails.py`: input sanitization + QA Critic (false promises, amounts, foreign orders, grounding, PII)
-- `src/supportdesk/tools.py`: order store, idempotent executor that re-checks invariants, approval queue, audit log
-- `src/supportdesk/orchestrator.py`: routing, bounded revision loop (2), escalation with safe templates
-- `src/supportdesk/llm.py`: `AnthropicClient` (live) and `MockClient` (offline, fault injection)
-- `data/`: sample orders/customers/help center/inbox; fixed today = 2026-10-07 (`SUPPORTDESK_TODAY`)
-- `evals/`: 19 cases + release gates (wrong action 0, false promise 0, PII 0, escalation recall 100%)
-- `docs/`: PRD, architecture, guardrails, monitoring, launch plan
+## Layout
+- `src/copilot/guardrails.py`: input guardrails (PII redaction, prompt-injection removal, size limits) and the
+  fabrication check (token overlap >= 80%, no new numbers, no added strength words such as led/managed/senior)
+  plus the summary check
+- `src/copilot/agents.py`: Analyzer, Tailor, Coach (LLM) and Critic (code)
+- `src/copilot/orchestrator.py`: guardrails → analyze → tailor ⇄ critic (max 1 retry) → coach; fail closed
+- `src/copilot/llm.py`: `AnthropicClient` (live) and `MockClient` (offline; `fabricate_first_n`, `inflate_first_n`)
+- `src/copilot/monitoring.py`: tracing to `logs/traces.jsonl`; no resume or JD content is stored
+- `evals/`: `cases.json` + `run_evals.py` with gates (pass_rate 1.0, fabrication_rate 0, pii_leak_rate 0)
+- `tests/`: unit tests; `tests/test_demo_parity.py` runs the demo's JS port in node against the Python originals
+- `demo/index.html`: browser demo with its own JavaScript port of the guardrails and Critic
+- `docs/`: PRD, ARCHITECTURE, GUARDRAILS (risk → control → test, plus known gaps), MONITORING, LAUNCH_PLAN
 
 ## Rules
 - Before and after any change: `python -m pytest -q` and `PYTHONPATH=src python evals/run_evals.py` must pass.
-- Never let an LLM output bypass `policy.evaluate` or the executor's invariant checks.
-- Customer-facing escalation/approval messages stay as fixed templates.
-- Every new failure mode gets an eval case; update the matching doc in `docs/`.
+- Never loosen the Critic or let model output bypass it. Fail closed: unverified resume is set to `None`.
+- Every new failure mode gets a unit test and an eval case; update `docs/GUARDRAILS.md` (including known gaps).
+- The demo carries a JS copy of the guardrails (between the `<parity:begin>`/`<parity:end>` markers in
+  `demo/index.html`). Change a guardrail in one place and change the other; add a case to
+  `tests/parity_cases.json` so the parity test covers it. Keep that block free of DOM access.
+- Offline results come from the mock model. They validate the harness and guardrails, not live-model quality.
+  Say so when reporting results, and do not claim live quality without `evals/run_evals.py --live`.
+- Do not store resume or job-description content in traces or logs.
 
-## Next up
-1. Live evals (`--live`) and record results in README.
-2. Browser demo like `job-copilot/demo/` (inbox view, approval queue, audit log).
-3. Embedding-based retrieval + a retrieval eval.
-4. Multi-turn conversations (customer replies to `awaiting_customer`).
+## Commands
+```bash
+pip install -r requirements.txt
+python -m pytest -q
+PYTHONPATH=src python evals/run_evals.py          # add --live (needs ANTHROPIC_API_KEY) for the real model
+PYTHONPATH=src python -m copilot.cli --resume examples/resume.txt --job examples/job.txt
+```
+CI (`.github/workflows/ci.yml`) runs the first two on every push and pull request.
+
+## Next up (from docs/LAUNCH_PLAN.md and docs/GUARDRAILS.md)
+1. Live eval run and record the results in the README.
+2. Grow the eval set to 50+ anonymised cases across 5+ role families.
+3. Semantic judge as a second, non-blocking fabrication signal; sampled human audits.
+4. Scan the resume text for injection too (today only the JD is scanned).

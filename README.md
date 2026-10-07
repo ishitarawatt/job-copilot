@@ -21,7 +21,7 @@ PYTHONPATH=src python -m copilot.cli --resume examples/resume.txt --job examples
 
 ## Verify
 ```bash
-python -m pytest -q                          # 41 unit tests
+python -m pytest -q                          # 47 unit tests
 PYTHONPATH=src python evals/run_evals.py     # 12 eval cases + safety gates (non-zero exit on failure)
 ```
 
@@ -39,6 +39,7 @@ evals/                 cases.json + run_evals.py (pass rate, fabrication rate, P
 tests/                 unit tests
 examples/              sample resume and job description
 demo/index.html        browser demo (example engine + live Claude mode)
+.github/workflows/     CI: unit tests (incl. demo/Python parity) and evals
 CLAUDE.md              context for Claude in new chats
 ```
 
