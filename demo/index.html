@@ -13,11 +13,11 @@
 /* Layout: a working desk. Inputs on top, the agent pipeline as a strip, then the proofed resume
    (left, like a marked-up sheet) beside the role, critic and interview prep (right). Trace last. */
 :root {
-  /* Golden Summer Fields + a deep forest-green anchor: 3A5A40 CCD5AE FEFAE0 FAEDCD E9EDC9 D4A373 2F2A24 FFFDF7.
+  /* Golden Summer Fields + a deep forest-green anchor: 3A5A40 CCD5AE FEFAE0 FAEDCD E9EDC9 D4A373 2F2A24 FFFDF7 (text on green). Surfaces use C98C8C.
      Muted text is the main text colour blended toward the page colour. Single light look: no dark-mode override. */
   --paper: #FEFAE0;
-  --sheet: #FFFDF7;
-  --field: #FFFDF7;
+  --sheet: #C98C8C;
+  --field: #C98C8C;
   --ink: #2F2A24;
   --muted: color-mix(in srgb, #2F2A24 78%, #FEFAE0);
   --rule: #CCD5AE;
@@ -50,7 +50,7 @@ p { margin: 0; }
 nav.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; position: relative; z-index: 2;
   background: #3A5A40; color: #FFFDF7; padding-block: 14px; padding-inline: max(16px, calc((100% - 780px) / 2 + 20px)); }
 nav.top .brand { font: 700 15px/1 var(--f-ui); display: flex; align-items: center; gap: 8px; }
-nav.top .brand i { width: 22px; height: 22px; border-radius: 7px; background: #FFFDF7; display: inline-block; }
+nav.top .brand i { width: 22px; height: 22px; border-radius: 7px; background: #C98C8C; display: inline-block; }
 nav.top .tags { display: flex; gap: 8px; flex-wrap: wrap; }
 nav.top .tags span { font: 500 12.5px/1 var(--f-ui); color: #FFFDF7; border: 1px solid color-mix(in srgb, #FFFDF7 45%, #3A5A40); border-radius: 999px; padding: 7px 12px; }
 header { display: grid; gap: 14px; justify-items: center; text-align: center; padding-block: 18px 6px; }
@@ -253,6 +253,11 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
   .aurora i:nth-child(2) { animation: drift2 18s ease-in-out infinite; }
   .aurora i:nth-child(3) { animation: drift3 21s ease-in-out infinite; }
 }
+
+/* text on the rose (#C98C8C) surfaces uses the full text colour: the softer muted tone is too faint there */
+.pipeline .kind, .pipeline li[data-state] .state, .pipeline li .state, .tests p, .seg button, .tests > summary { color: var(--ink); }
+.seg button[aria-pressed="true"] { color: var(--accent-ink); }
+.seg button:disabled { opacity: .65; }
 
 /* one column, flowing downward: no side-by-side columns and no boxed cards, just sections divided by a thin line */
 .wrap { max-width: 780px; }
