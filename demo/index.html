@@ -128,6 +128,19 @@ textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px
 .tests > div { padding: 0 16px 16px; display: grid; gap: 12px; }
 .tests p { font-size: 13px; color: var(--muted); }
 details.panel > summary { cursor: pointer; font: 600 15px/1.3 var(--f-ui); }
+.ats-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ats-num { font: 700 34px/1 var(--f-ui); font-variant-numeric: tabular-nums; }
+.ats-num small { font-size: 15px; font-weight: 500; color: var(--muted); }
+.ats-band { font: 600 13px/1 var(--f-ui); padding: 6px 10px; border-radius: 99px; }
+.ats-band.good { background: var(--ok-bg); color: var(--ok); }
+.ats-band.mid { background: var(--warn-bg); color: var(--warn); }
+.ats-band.low { background: var(--bad-bg); color: var(--bad); }
+.ats-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ats-rows li { display: grid; gap: 3px; }
+.ats-rows .row { display: flex; justify-content: space-between; gap: 10px; font: 600 13px/1.3 var(--f-ui); font-variant-numeric: tabular-nums; }
+.ats-rows .why { font-size: 12.5px; color: var(--muted); }
+.ats-tips { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; }
+.copybtn { justify-self: start; }
 .skill-group { display: grid; gap: 8px; }
 .skill-group h3 { font: 600 13px/1.3 var(--f-ui); }
 
@@ -261,6 +274,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
     </div>
     <div class="col">
       <article class="panel" id="role"></article>
+      <article class="panel" id="ats"></article>
       <article class="panel" id="critic"></article>
       <article class="panel" id="prep"></article>
     </div>
@@ -476,6 +490,41 @@ function summaryIssues(summary, resume, jobTitle = "") {
   const inflated = inflation(words(summary), words(sourceText), words(jobTitle));
   if (inflated.length) issues.push(`The summary makes stronger claims than your resume (adds: ${inflated.join(", ")}).`);
   return issues;
+}
+// ---- ATS-style readiness estimate (port of src/copilot/ats.py; keep the two identical)
+const ATS_PARTS = [["keywords", "Required keywords", 50], ["nice", "Nice-to-have keywords", 10], ["results", "Measurable results", 15], ["structure", "Structure", 15], ["clarity", "Bullet length", 10]];
+const ATS_MIN_BULLETS = 3, ATS_MAX_BULLETS = 15, ATS_MIN_WORDS = 8, ATS_MAX_WORDS = 30, ATS_RESULTS_TARGET = 0.5;
+const wordCount = (s) => (s.match(/\S+/g) || []).length;
+function atsScore(tailored, analysis) {
+  const text = [tailored.summary, ...tailored.bullets, ...tailored.matched_skills].join(" ");
+  const bullets = tailored.bullets, n = bullets.length;
+  const req = analysis.required_skills, reqHit = req.filter(s => skillInText(s, text));
+  const nice = analysis.nice_to_have, niceHit = nice.filter(s => skillInText(s, text));
+  const withNumber = bullets.filter(b => /\d/.test(b)).length;
+  const okLen = bullets.filter(b => wordCount(b) >= ATS_MIN_WORDS && wordCount(b) <= ATS_MAX_WORDS).length;
+  const hasSummary = tailored.summary.trim().length > 0, hasSkills = tailored.matched_skills.length > 0;
+  const pts = {
+    keywords: req.length ? 50 * reqHit.length / req.length : 0,
+    nice: nice.length ? 10 * niceHit.length / nice.length : 10,
+    results: n ? 15 * Math.min(1.0, (withNumber / n) / ATS_RESULTS_TARGET) : 0,
+    structure: 5 * hasSummary + 5 * hasSkills + 5 * (n >= ATS_MIN_BULLETS && n <= ATS_MAX_BULLETS),
+    clarity: n ? 10 * okLen / n : 0,
+  };
+  const notes = {
+    keywords: `${reqHit.length} of ${req.length} required skills appear in your resume`,
+    nice: nice.length ? `${niceHit.length} of ${nice.length} nice-to-have skills appear` : "none listed in the posting",
+    results: `${withNumber} of ${n} bullets contain a number`,
+    structure: `summary ${hasSummary ? "yes" : "no"}, skills ${hasSkills ? "yes" : "no"}, ${n} bullets (aim for ${ATS_MIN_BULLETS}-${ATS_MAX_BULLETS})`,
+    clarity: `${okLen} of ${n} bullets are ${ATS_MIN_WORDS}-${ATS_MAX_WORDS} words`,
+  };
+  const parts = ATS_PARTS.map(([id, label, max]) => ({ id, label, points: Math.floor(pts[id] + 0.5), max, note: notes[id] }));
+  const missing = req.filter(s => !reqHit.includes(s)), tips = [];
+  if (reqHit.length < req.length) tips.push(`Missing keywords: ${missing.join(", ")}. Add them only if you genuinely have the experience.`);
+  if (n && withNumber / n < ATS_RESULTS_TARGET) tips.push("Add real numbers (users, %, time saved) to more bullets, but only ones you can back up.");
+  if (n && okLen < n) tips.push(`Keep each bullet between ${ATS_MIN_WORDS} and ${ATS_MAX_WORDS} words so it scans quickly.`);
+  if (!hasSummary) tips.push("Add a one or two line summary at the top.");
+  if (!(n >= ATS_MIN_BULLETS && n <= ATS_MAX_BULLETS)) tips.push(`Use ${ATS_MIN_BULLETS} to ${ATS_MAX_BULLETS} bullets.`);
+  return { score: parts.reduce((a, p) => a + p.points, 0), parts, tips, missing };
 }
 // <parity:end>
 
@@ -718,6 +767,7 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
       return r;    // fail closed: unverified draft is never shown
     }
     r.draft = draft; r.prov = verdict.prov;
+    r.ats = atsScore(draft, analysis);   // informational only; computed from the approved draft
 
     // 4. Coach
     setStage("coach", "running", engine === "live" ? "Live is writing questions" : "writing questions"); await sleep(pace);
@@ -761,6 +811,14 @@ function render(r) {
         h("span", { class: "prov" }, `✓ Matches your bullet ${p.idx + 1}. No new numbers, no stronger claims.`)));
     });
     sheet.append(ul);
+    const plain = [r.draft.summary, "", ...r.draft.bullets.map(b => "- " + b), "", "Skills: " + r.draft.matched_skills.join(", ")].join("\n");
+    const cb = h("button", { class: "btn ghost copybtn", type: "button" }, "Copy as plain text (ATS-safe)");
+    cb.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(plain); cb.textContent = "Copied"; }
+      catch { const ta = h("textarea", { readonly: "", rows: "8" }); ta.value = plain; cb.replaceWith(ta); ta.select(); }
+      setTimeout(() => { if (cb.isConnected) cb.textContent = "Copy as plain text (ATS-safe)"; }, 1800);
+    });
+    sheet.append(cb);
   } else if (r.status === "needs_human" && r.drafts.length) {
     sheet.append(h("div", { class: "withheld" }, h("strong", {}, "Draft withheld"),
       h("span", {}, `The Critic rejected ${r.drafts.length} draft${r.drafts.length > 1 ? "s" : ""}. Rather than show you claims it couldn't verify, the copilot sends this one for human review.`)));
@@ -792,6 +850,17 @@ function render(r) {
     } else role.append(h("div", { class: "skill-group" }, h("h3", {}, "Skills the job asks for"), mk("nice", reqs)));
     if (a.nice_to_have.length) role.append(h("div", { class: "skill-group" }, h("h3", {}, "Nice to have"), mk("nice", a.nice_to_have)));
   } else role.append(h("p", { class: "meta" }, "Not analyzed."));
+
+  // ATS-style estimate
+  const at = $("ats"); at.replaceChildren(h("span", { class: "eyebrow" }, "ATS-friendly score · plain code"));
+  if (r.ats) {
+    const sc = r.ats.score, band = sc >= 80 ? ["good", "Strong"] : sc >= 60 ? ["mid", "Decent"] : ["low", "Needs work"];
+    at.append(h("div", { class: "ats-top" }, h("span", { class: "ats-num" }, String(sc), h("small", {}, " / 100")), h("span", { class: `ats-band ${band[0]}` }, band[1])),
+      h("div", { class: "meter", role: "img", "aria-label": `ATS score ${sc} out of 100` }, h("div", { style: `width:${sc}%` })),
+      h("ul", { class: "ats-rows" }, r.ats.parts.map(p => h("li", {}, h("span", { class: "row" }, h("span", {}, p.label), h("span", {}, `${p.points} / ${p.max}`)), h("span", { class: "why" }, p.note)))));
+    if (r.ats.tips.length) at.append(h("h3", { class: "eyebrow" }, "How to raise it, honestly"), h("ul", { class: "ats-tips" }, r.ats.tips.map(t => h("li", {}, t))));
+    at.append(h("p", { class: "meta" }, "An estimate of what recruiters' software scans for, not the score any real ATS would give. Skills only count when your resume really shows them."));
+  } else at.append(h("p", { class: "meta" }, "Shown once the Critic approves a draft."));
 
   // critic
   const cr = $("critic"); cr.replaceChildren(h("span", { class: "eyebrow" }, "Fact-check · done by plain code, not an AI"));

@@ -236,3 +236,50 @@ def test_gap_report_does_not_hide_a_gap_behind_a_longer_word():
     resume = "Tara Nair\nEngineer with three years on web apps.\nSkills: javascript\n- Built a javascript admin console for support agents\n"
     res = Orchestrator(MockClient(), Tracer(None)).run(resume, "Software Engineer\nRequirements: java, javascript.")
     assert res.status == "ok" and res.resume.gaps == ["java"] and res.resume.matched_skills == ["javascript"]
+
+
+# --- ATS-style readiness score ---------------------------------------------------------------------
+from copilot.ats import ats_score
+from copilot.schemas import JobAnalysis, TailoredResume
+
+
+def _tr(summary="Analyst with 3 years of experience.", bullets=None, matched=None):
+    return TailoredResume(summary, bullets if bullets is not None else [
+        "Wrote SQL reports that cut manual work by 30% for the sales team",
+        "Built weekly dashboards tracking retention for 40000 users across regions",
+        "Ran A/B testing on checkout and raised conversion by 9% over one quarter"], matched if matched is not None else ["sql"], [])
+
+
+def _an(req, nice=()):
+    return JobAnalysis("Analyst", list(req), list(nice), "mid", [])
+
+
+def test_ats_score_is_bounded_and_explains_itself():
+    r = ats_score(_tr(), _an(["sql", "a/b testing"], ["agile"]))
+    assert 0 <= r["score"] <= 100 and sum(p["points"] for p in r["parts"]) == r["score"]
+    assert all(0 <= p["points"] <= p["max"] for p in r["parts"]) and sum(p["max"] for p in r["parts"]) == 100
+
+
+def test_ats_keywords_only_count_when_the_resume_really_shows_them():
+    full = ats_score(_tr(), _an(["sql", "a/b testing"]))
+    gap = ats_score(_tr(), _an(["sql", "kubernetes"]))
+    assert gap["score"] < full["score"] and gap["missing"] == ["kubernetes"]
+    assert any("Missing keywords: kubernetes" in t for t in gap["tips"])
+
+
+def test_ats_does_not_count_a_longer_word_as_a_keyword():
+    r = ats_score(_tr(bullets=["Migrated the codebase from javascript to typescript for the web team every quarter"] * 3,
+                      matched=["javascript"]), _an(["java"]))
+    assert r["missing"] == ["java"]
+
+
+def test_ats_empty_or_thin_resume_scores_low_without_crashing():
+    r = ats_score(_tr(summary="", bullets=[], matched=[]), _an(["sql"]))
+    assert r["score"] <= 10 and r["tips"]
+
+
+def test_ats_is_set_only_for_an_approved_resume():
+    ok = Orchestrator(MockClient(), Tracer(None)).run(RESUME, JOB)
+    assert ok.status == "ok" and ok.ats and 0 <= ok.ats["score"] <= 100
+    bad = Orchestrator(MockClient(fabricate_first_n=9), Tracer(None)).run(RESUME, JOB)
+    assert bad.status == "needs_human" and bad.ats is None

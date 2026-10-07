@@ -21,7 +21,7 @@ PYTHONPATH=src python -m copilot.cli --resume examples/resume.txt --job examples
 
 ## Verify
 ```bash
-python -m pytest -q                          # 63 unit tests
+python -m pytest -q                          # 69 unit tests
 PYTHONPATH=src python evals/run_evals.py     # 59 eval cases across 6 role families + safety gates (non-zero exit on failure)
 ```
 

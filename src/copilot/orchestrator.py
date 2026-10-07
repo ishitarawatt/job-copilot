@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 
+from .ats import ats_score
 from .agents import Analyzer, Coach, Critic, Tailor
 from .guardrails import check_job_description, redact_pii
 from .llm import LLMClient
@@ -96,6 +97,8 @@ class Orchestrator:
                 result.status = "needs_human"
                 result.resume = None   # never surface unverified resume content
                 return result
+
+            result.ats = ats_score(tailored, analysis)   # informational only; computed from the approved resume
 
             # 4. Interview prep (runs after approval so gap list is trustworthy)
             result.prep = self._call(trace_id, "coach",

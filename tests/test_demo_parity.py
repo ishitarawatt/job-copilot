@@ -27,6 +27,9 @@ console.log(JSON.stringify({
   jd: cases.jd.map(checkJob),
   skills: cases.skills.map(c => skillInText(c.skill, c.text)),
   bullets: cases.bullets.map(c => provenance(c.bullet, c.sources).supported),
+  ats: cases.ats.map(c => atsScore(
+    { summary: c.summary, bullets: c.bullets, matched_skills: c.matched_skills },
+    { required_skills: c.required_skills, nice_to_have: c.nice_to_have })),
   summaries: cases.summaries.map(c => summaryIssues(
     c.summary, { summary: c.source_summary, bullets: c.bullets, skills: c.skills }, c.title).length),
 }));
@@ -92,3 +95,14 @@ def test_summary_verdicts_match(js):
     py = [len(g.check_summary(c["summary"], c["source_summary"], c["bullets"], c["skills"], c["title"]))
           for c in CASES["summaries"]]
     _same("summary issue count", [c["summary"] for c in CASES["summaries"]], py, js["summaries"])
+
+
+def test_ats_score_matches(js):
+    from copilot.ats import ats_score
+    from copilot.schemas import JobAnalysis, TailoredResume
+    py = []
+    for c in CASES["ats"]:
+        r = ats_score(TailoredResume(c["summary"], c["bullets"], c["matched_skills"], []),
+                      JobAnalysis("t", c["required_skills"], c["nice_to_have"], "mid", []))
+        py.append(r)
+    _same("ats_score", [c["summary"] for c in CASES["ats"]], py, js["ats"])

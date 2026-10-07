@@ -11,6 +11,7 @@ LLMs propose, code disposes. No model output reaches the user unless the Critic 
 - `src/copilot/guardrails.py`: input guardrails (PII redaction, prompt-injection removal, size limits) and the
   fabrication check (token overlap >= 80%, no new numbers, no added strength words such as led/managed/senior)
   plus the summary check
+- `src/copilot/ats.py`: deterministic ATS-style readiness score (0-100) for the approved resume; informational only, never gates output, keywords count only as real evidence. The demo has a JS port inside the parity block
 - `src/copilot/agents.py`: Analyzer, Tailor, Coach (LLM) and Critic (code)
 - `src/copilot/orchestrator.py`: guardrails → analyze → tailor ⇄ critic (max 1 retry) → coach; fail closed
 - `src/copilot/llm.py`: `AnthropicClient` (live) and `MockClient` (offline; `fabricate_first_n`, `inflate_first_n`)

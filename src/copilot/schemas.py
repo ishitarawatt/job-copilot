@@ -41,6 +41,7 @@ class CopilotResult:
     resume: TailoredResume | None = None
     prep: InterviewPrep | None = None
     critic: CriticReport | None = None
+    ats: dict | None = None           # ATS-style readiness estimate, set only for an approved resume
     flags: list[str] = field(default_factory=list)
     trace_id: str = ""
 
