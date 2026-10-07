@@ -232,6 +232,20 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
   .pill { animation: rise .45s ease both; }
 }
 
+/* one column, flowing downward: no side-by-side columns and no boxed cards, just sections divided by a thin line */
+.wrap { max-width: 780px; }
+.inputs, .results { grid-template-columns: 1fr; }
+.card, .panel, .sheet { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding-inline: 0; }
+.card { padding-block: 0; }
+.card .controls { border-top: 0; padding-top: 0; }
+.panel, .sheet { border-top: 1px solid var(--rule); padding-block: 26px 4px; }
+.results, .col { gap: 0; }
+.col + .col { border-top: 1px solid var(--rule); }
+.col > .panel:first-child { border-top: 0; }
+.results > .col:first-child > .panel { border-top: 0; }
+.panel:hover { box-shadow: none; }
+details.panel { border-top: 1px solid var(--rule); padding-block: 22px; }
+
 @media (max-width: 860px) {
   .inputs, .results { grid-template-columns: 1fr; }
   .pipeline { grid-template-columns: 1fr 1fr; }
