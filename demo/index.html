@@ -13,27 +13,27 @@
 /* Layout: a working desk. Inputs on top, the agent pipeline as a strip, then the proofed resume
    (left, like a marked-up sheet) beside the role, critic and interview prep (right). Trace last. */
 :root {
-  /* Golden Summer Fields: CCD5AE, E9EDC9, FEFAE0, FAEDCD, D4A373. Only these five, plus a neutral near-black for text.
-     A deliberately single, light look: no dark-mode override, so the palette is never altered. */
+  /* Golden Summer Fields + a deep forest-green anchor: 3A5A40 CCD5AE FEFAE0 FAEDCD E9EDC9 D4A373 2F2A24 FFFDF7.
+     Muted text is the main text colour blended toward the page colour. Single light look: no dark-mode override. */
   --paper: #FEFAE0;
-  --sheet: #FEFAE0;
-  --field: #E9EDC9;
-  --ink: #1a1a1a;
-  --muted: #4a4a4a;
+  --sheet: #FFFDF7;
+  --field: #FFFDF7;
+  --ink: #2F2A24;
+  --muted: color-mix(in srgb, #2F2A24 78%, #FEFAE0);
   --rule: #CCD5AE;
-  --accent: #D4A373;
-  --accent-ink: #1a1a1a;
+  --accent: #3A5A40;
+  --accent-ink: #FFFDF7;
   --mark: #CCD5AE;
-  --mark-ink: #1a1a1a;
-  --ok: #1a1a1a;
-  --ok-bg: #CCD5AE;
-  --bad: #1a1a1a;
+  --mark-ink: #2F2A24;
+  --ok: #3A5A40;
+  --ok-bg: #E9EDC9;
+  --bad: #2F2A24;
   --bad-bg: #D4A373;
-  --warn: #1a1a1a;
+  --warn: #2F2A24;
   --warn-bg: #FAEDCD;
-  --run: #D4A373;
-  --run-bg: #FAEDCD;
-  --shadow: 0 1px 2px rgba(26, 26, 26, .06), 0 12px 32px rgba(26, 26, 26, .08);
+  --run: #3A5A40;
+  --run-bg: #E9EDC9;
+  --shadow: 0 1px 2px rgba(47, 42, 36, .06), 0 12px 32px rgba(47, 42, 36, .08);
 
   --f-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-doc: "Source Serif 4", Georgia, "Times New Roman", serif;
@@ -47,11 +47,12 @@ p { margin: 0; }
 .eyebrow { font: 600 11px/1 var(--f-ui); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
 
 /* header */
-nav.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+nav.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; position: relative; z-index: 2;
+  background: #3A5A40; color: #FFFDF7; padding-block: 14px; padding-inline: max(16px, calc((100% - 780px) / 2 + 20px)); }
 nav.top .brand { font: 700 15px/1 var(--f-ui); display: flex; align-items: center; gap: 8px; }
-nav.top .brand i { width: 22px; height: 22px; border-radius: 7px; background: var(--ink); display: inline-block; }
+nav.top .brand i { width: 22px; height: 22px; border-radius: 7px; background: #FFFDF7; display: inline-block; }
 nav.top .tags { display: flex; gap: 8px; flex-wrap: wrap; }
-nav.top .tags span { font: 500 12.5px/1 var(--f-ui); color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 12px; background: var(--sheet); }
+nav.top .tags span { font: 500 12.5px/1 var(--f-ui); color: #FFFDF7; border: 1px solid color-mix(in srgb, #FFFDF7 45%, #3A5A40); border-radius: 999px; padding: 7px 12px; }
 header { display: grid; gap: 14px; justify-items: center; text-align: center; padding-block: 18px 6px; }
 header h1 { font: 800 clamp(34px, 6vw, 58px)/1.05 var(--f-ui); letter-spacing: -.025em; max-width: 18ch; }
 header h1 em { font-family: var(--f-doc); font-weight: 600; letter-spacing: -.01em; }
@@ -77,13 +78,13 @@ textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; background: var(--sheet); padding: 3px; gap: 3px; }
 .seg button { border: 0; background: transparent; color: var(--muted); font: 500 13px/1 var(--f-ui); padding: 9px 14px; border-radius: 999px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .seg button:disabled { opacity: .45; cursor: not-allowed; }
 .toggle { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
 .toggle input { width: 16px; height: 16px; flex: none; margin: 2px 0 0; accent-color: var(--bad); }
 .btn { border: 0; border-radius: 999px; padding: 13px 24px; font: 600 14px/1 var(--f-ui); cursor: pointer; background: var(--accent); color: var(--accent-ink); }
 .btn:disabled { opacity: .55; cursor: progress; }
-.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+.btn.ghost { background: #D4A373; color: var(--ink); border: 0; }
 .note { font-size: 12.5px; color: var(--muted); flex-basis: 100%; }
 .note.err { color: var(--bad); }
 
@@ -223,7 +224,7 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
   .bullets li:nth-child(n+5), .ats-rows li:nth-child(n+5), .qs li:nth-child(n+5) { animation-delay: .33s; }
   .skill:nth-child(odd) { animation-delay: .1s; } .skill:nth-child(even) { animation-delay: .2s; }
   .btn, .seg button, .tests > summary { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
-  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(26, 26, 26, .14); }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(47, 42, 36, .16); }
   .btn:active:not(:disabled) { transform: translateY(0); }
   .panel, .card { transition: box-shadow .25s ease, transform .25s ease, opacity .7s ease; }
   .panel:hover { box-shadow: var(--shadow); }
@@ -280,10 +281,10 @@ details.panel { border-top: 1px solid var(--rule); padding-block: 22px; }
 }
 </style>
 
+<nav class="top" aria-label="About"><span class="brand"><i></i>Job Application Copilot</span>
+    <span class="tags"><span>Fact-checked by code</span><span>ATS-friendly score</span><span>Interview prep</span></span></nav>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <div class="wrap">
-  <nav class="top" aria-label="About"><span class="brand"><i></i>Job Application Copilot</span>
-    <span class="tags"><span>Fact-checked by code</span><span>ATS-friendly score</span><span>Interview prep</span></span></nav>
   <header>
     <h1>From job posting to application, <em>without inventing a thing.</em></h1>
     <p class="thesis">Paste your resume and a job. Get a tailored resume where every line traces back to your real experience, an honest look at your skill gaps, an ATS-friendly score, and interview prep.</p>
