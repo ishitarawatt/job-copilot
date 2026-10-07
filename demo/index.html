@@ -13,26 +13,28 @@
 /* Layout: a working desk. Inputs on top, the agent pipeline as a strip, then the proofed resume
    (left, like a marked-up sheet) beside the role, critic and interview prep (right). Trace last. */
 :root {
-  /* Golden Summer Fields: CCD5AE, E9EDC9, FEFAE0, FAEDCD, D4A373. Only these five, plus a neutral near-black for text.
+  /* Palette (sampled from the supplied swatches): 797D62 9B9B79 BAA586 DAAE95 F1DCA7 FFCB68 E8AC64 D08B61 B58463 9A7B66.
+     Only these ten, plus a neutral near-black for text (none of the ten is dark enough to read as body text).
      A deliberately single, light look: no dark-mode override, so the palette is never altered. */
-  --paper: #E9EDC9;
-  --sheet: #FEFAE0;
+  --paper: #BAA586;
+  --sheet: #F1DCA7;
+  --field: #DAAE95;
   --ink: #1a1a1a;
-  --muted: #4a4a4a;
-  --rule: #CCD5AE;
-  --accent: #D4A373;
+  --muted: #2e2e2e;
+  --rule: #9B9B79;
+  --accent: #D08B61;
   --accent-ink: #1a1a1a;
-  --mark: #CCD5AE;
+  --mark: #FFCB68;
   --mark-ink: #1a1a1a;
   --ok: #1a1a1a;
-  --ok-bg: #CCD5AE;
+  --ok-bg: #9B9B79;
   --bad: #1a1a1a;
-  --bad-bg: #D4A373;
+  --bad-bg: #B58463;
   --warn: #1a1a1a;
-  --warn-bg: #FAEDCD;
-  --run: #D4A373;
-  --run-bg: #FAEDCD;
-  --shadow: 0 1px 2px rgba(26, 26, 26, .06), 0 12px 32px rgba(26, 26, 26, .08);
+  --warn-bg: #E8AC64;
+  --run: #797D62;
+  --run-bg: #DAAE95;
+  --shadow: 0 1px 2px rgba(26, 26, 26, .08), 0 12px 32px rgba(26, 26, 26, .12);
 
   --f-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-doc: "Source Serif 4", Georgia, "Times New Roman", serif;
@@ -67,7 +69,7 @@ header .thesis { font: 400 clamp(16px, 2vw, 19px)/1.5 var(--f-ui); color: var(--
 .field label span { display: block; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 2px; }
 textarea {
   width: 100%; min-height: 230px; resize: vertical; padding: 14px 16px;
-  font: 13px/1.55 var(--f-mono); color: var(--ink); background: var(--paper);
+  font: 13px/1.55 var(--f-mono); color: var(--ink); background: var(--field);
   border: 1px solid var(--rule); border-radius: 12px;
 }
 textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
