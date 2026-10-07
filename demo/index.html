@@ -16,7 +16,7 @@
   --paper: #f3f5f8;
   --sheet: #ffffff;
   --ink: #141820;
-  --muted: #5a6371;
+  --muted: #454d5b;
   --rule: #d9dee6;
   --accent: #2343c8;
   --accent-ink: #ffffff;
@@ -38,7 +38,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0e1116; --sheet: #161a21; --ink: #e6e9ef; --muted: #98a1b0; --rule: #2a303b;
+    --paper: #0e1116; --sheet: #161a21; --ink: #e6e9ef; --muted: #b4bccb; --rule: #2a303b;
     --accent: #8197ff; --accent-ink: #0e1116; --mark: rgba(255, 226, 94, .28); --mark-ink: #fff3b8;
     --ok: #62d39b; --ok-bg: #12261c; --bad: #ff8088; --bad-bg: #2d1518; --warn: #f0c25a; --warn-bg: #2b2310;
     --run: #8197ff; --run-bg: #1a2140; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 24px rgba(0,0,0,.25);
@@ -46,7 +46,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --paper: #0e1116; --sheet: #161a21; --ink: #e6e9ef; --muted: #98a1b0; --rule: #2a303b;
+  --paper: #0e1116; --sheet: #161a21; --ink: #e6e9ef; --muted: #b4bccb; --rule: #2a303b;
   --accent: #8197ff; --accent-ink: #0e1116; --mark: rgba(255, 226, 94, .28); --mark-ink: #fff3b8;
   --ok: #62d39b; --ok-bg: #12261c; --bad: #ff8088; --bad-bg: #2d1518; --warn: #f0c25a; --warn-bg: #2b2310;
   --run: #8197ff; --run-bg: #1a2140; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 24px rgba(0,0,0,.25);
@@ -54,11 +54,11 @@
 }
 
 * { box-sizing: border-box; }
-body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--f-ui); }
-.wrap { max-width: 1140px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 28px; }
+body { background: var(--paper); color: var(--ink); font: 17px/1.6 var(--f-ui); }
+.wrap { max-width: 1140px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 32px; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
-.eyebrow { font: 600 11px/1 var(--f-ui); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.eyebrow { font: 600 13px/1.2 var(--f-ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 
 /* header */
 header { display: grid; gap: 8px; }
@@ -69,11 +69,11 @@ header .thesis em { color: var(--ink); font-style: italic; }
 /* inputs */
 .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .field { display: grid; gap: 6px; min-width: 0; }
-.field label { font: 600 13px/1.2 var(--f-ui); }
-.field label span { font-weight: 400; color: var(--muted); }
+.field label { font: 600 17px/1.3 var(--f-ui); }
+.field label span { display: block; font-weight: 400; font-size: 14.5px; color: var(--muted); margin-top: 2px; }
 textarea {
-  width: 100%; min-height: 230px; resize: vertical; padding: 12px 14px;
-  font: 13px/1.55 var(--f-mono); color: var(--ink); background: var(--sheet);
+  width: 100%; min-height: 260px; resize: vertical; padding: 14px 16px;
+  font: 15px/1.6 var(--f-mono); color: var(--ink); background: var(--sheet);
   border: 1px solid var(--rule); border-radius: 8px;
 }
 textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -81,24 +81,24 @@ textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px
 /* controls */
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); padding: 3px; gap: 3px; }
-.seg button { border: 0; background: transparent; color: var(--muted); font: 500 13px/1 var(--f-ui); padding: 9px 12px; border-radius: 6px; cursor: pointer; }
+.seg button { border: 0; background: transparent; color: var(--muted); font: 600 15px/1 var(--f-ui); padding: 12px 16px; border-radius: 6px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .seg button:disabled { opacity: .45; cursor: not-allowed; }
-.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
-.toggle input { width: 16px; height: 16px; accent-color: var(--bad); }
-.btn { border: 0; border-radius: 8px; padding: 11px 18px; font: 600 14px/1 var(--f-ui); cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.toggle { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--ink); cursor: pointer; }
+.toggle input { width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: var(--bad); }
+.btn { border: 0; border-radius: 8px; padding: 15px 26px; font: 600 17px/1 var(--f-ui); cursor: pointer; background: var(--accent); color: var(--accent-ink); }
 .btn:disabled { opacity: .55; cursor: progress; }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
-.note { font-size: 12.5px; color: var(--muted); flex-basis: 100%; }
+.note { font-size: 15px; color: var(--muted); flex-basis: 100%; }
 .note.err { color: var(--bad); }
 
 /* pipeline */
 .pipeline { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); overflow: hidden; }
-.pipeline li { padding: 12px 14px; display: grid; gap: 3px; border-right: 1px solid var(--rule); position: relative; min-width: 0; }
+.pipeline li { padding: 14px 16px; display: grid; gap: 3px; border-right: 1px solid var(--rule); position: relative; min-width: 0; }
 .pipeline li:last-child { border-right: 0; }
-.pipeline .name { font: 600 14px/1.2 var(--f-ui); display: flex; align-items: center; gap: 6px; }
-.pipeline .kind { font: 500 10.5px/1 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-.pipeline .state { font: 12px/1.3 var(--f-mono); color: var(--muted); min-height: 1.3em; overflow-wrap: anywhere; }
+.pipeline .name { font: 600 16px/1.25 var(--f-ui); display: flex; align-items: center; gap: 6px; }
+.pipeline .kind { font: 500 12.5px/1.2 var(--f-ui); letter-spacing: .02em; color: var(--muted); }
+.pipeline .state { font: 500 14px/1.35 var(--f-ui); color: var(--muted); min-height: 1.3em; overflow-wrap: anywhere; }
 .pipeline li::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: transparent; }
 .pipeline li[data-state="running"] { background: var(--run-bg); }
 .pipeline li[data-state="running"]::after { background: var(--run); }
@@ -114,74 +114,83 @@ textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px
 
 /* status */
 .status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.pill { font: 600 13px/1 var(--f-ui); padding: 7px 11px; border-radius: 999px; }
+.pill { font: 700 17px/1 var(--f-ui); padding: 10px 16px; border-radius: 999px; }
 .pill.ok { background: var(--ok-bg); color: var(--ok); }
 .pill.needs_human { background: var(--warn-bg); color: var(--warn); }
 .pill.blocked, .pill.error { background: var(--bad-bg); color: var(--bad); }
 .pill.stopped { background: var(--rule); color: var(--muted); }
-.chip { font: 12px/1 var(--f-mono); padding: 5px 7px; border-radius: 5px; border: 1px solid var(--rule); color: var(--muted); }
-.status .sum { font-size: 13.5px; color: var(--muted); }
+.chip { font: 13px/1 var(--f-mono); padding: 6px 8px; border-radius: 5px; border: 1px solid var(--rule); color: var(--muted); }
+.status .sum { font-size: 17px; color: var(--ink); flex-basis: 100%; }
+.step { display: flex; align-items: center; gap: 10px; font: 700 20px/1.2 var(--f-ui); }
+.step b { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper); display: inline-grid; place-items: center; font-size: 16px; flex: none; }
+.tests { border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); padding: 0; flex-basis: 100%; }
+.tests > summary { cursor: pointer; padding: 14px 16px; font: 600 16px/1.3 var(--f-ui); }
+.tests > div { padding: 0 16px 16px; display: grid; gap: 12px; }
+.tests p { font-size: 15px; color: var(--muted); }
+details.panel > summary { cursor: pointer; font: 600 17px/1.3 var(--f-ui); }
+.skill-group { display: grid; gap: 8px; }
+.skill-group h3 { font: 600 15px/1.3 var(--f-ui); }
 
 /* results */
 .results { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .col { display: grid; gap: 20px; min-width: 0; }
 .panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
-.panel h2 { font: 600 16px/1.25 var(--f-ui); }
-.panel h2 small { font-weight: 400; color: var(--muted); font-size: 13px; }
+.panel h2 { font: 600 20px/1.25 var(--f-ui); }
+.panel h2 small { font-weight: 400; color: var(--muted); font-size: 15px; }
 
 /* the resume sheet */
 .sheet { box-shadow: var(--shadow); padding: 28px 30px; gap: 18px; }
-.sheet .summary { font: 400 16.5px/1.6 var(--f-doc); max-width: 65ch; }
+.sheet .summary { font: 400 18px/1.65 var(--f-doc); max-width: 65ch; }
 .bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .bullets li { display: grid; gap: 4px; padding-left: 16px; position: relative; }
 .bullets li::before { content: ""; position: absolute; left: 0; top: .72em; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
-.bullets .text { font: 400 15.5px/1.55 var(--f-doc); }
-.prov { font: 11.5px/1.35 var(--f-mono); color: var(--ok); }
+.bullets .text { font: 400 18px/1.6 var(--f-doc); }
+.prov { font: 500 14.5px/1.4 var(--f-ui); color: var(--ok); }
 .prov.bad { color: var(--bad); }
-.withheld { border: 1px dashed var(--warn); background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 14px 16px; font-size: 14px; display: grid; gap: 4px; }
+.withheld { border: 1px dashed var(--warn); background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 16px 18px; font-size: 17px; display: grid; gap: 4px; }
 .withheld strong { font-weight: 600; }
 
 /* role */
-.role-title { font: 600 18px/1.3 var(--f-doc); }
-.meta { font-size: 13px; color: var(--muted); }
+.role-title { font: 600 22px/1.3 var(--f-doc); }
+.meta { font-size: 16px; color: var(--muted); }
 .skills { display: flex; flex-wrap: wrap; gap: 6px; }
-.skill { font: 500 13px/1 var(--f-ui); padding: 6px 9px; border-radius: 5px; }
+.skill { font: 500 16px/1.1 var(--f-ui); padding: 8px 12px; border-radius: 5px; }
 .skill.has { background: var(--mark); color: var(--mark-ink); }
 .skill.gap { border: 1px dashed var(--muted); color: var(--muted); }
 .skill.nice { color: var(--muted); border: 1px solid var(--rule); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14.5px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
-.meter { height: 8px; border-radius: 99px; background: var(--rule); overflow: hidden; }
+.meter { height: 10px; border-radius: 99px; background: var(--rule); overflow: hidden; }
 .meter > div { height: 100%; background: var(--accent); }
 
 /* critic */
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.drafts li { display: grid; gap: 6px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--rule); }
+.drafts li { display: grid; gap: 6px; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--rule); }
 .drafts li.ok { border-color: var(--ok); background: var(--ok-bg); }
 .drafts li.rej { border-color: var(--warn); background: var(--warn-bg); }
-.drafts .head { font: 600 13px/1.2 var(--f-ui); }
+.drafts .head { font: 600 16px/1.3 var(--f-ui); }
 .drafts li.ok .head { color: var(--ok); }
 .drafts li.rej .head { color: var(--warn); }
-.drafts ul { margin: 0; padding-left: 18px; font-size: 13px; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.drafts ul { margin: 0; padding-left: 20px; font-size: 15.5px; display: grid; gap: 4px; overflow-wrap: anywhere; }
 
 /* prep */
 .qs { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
 .qs li { display: grid; gap: 3px; }
-.qs .q { font: 600 14.5px/1.4 var(--f-ui); }
-.qs .why { font-size: 12.5px; color: var(--muted); }
-.qs .tip { font: 400 14px/1.5 var(--f-doc); }
-.gaps { margin: 0; padding-left: 18px; display: grid; gap: 6px; font: 400 14px/1.5 var(--f-doc); }
+.qs .q { font: 600 17px/1.4 var(--f-ui); }
+.qs .why { font-size: 15px; color: var(--muted); }
+.qs .tip { font: 400 16.5px/1.55 var(--f-doc); }
+.gaps { margin: 0; padding-left: 18px; display: grid; gap: 6px; font: 400 16.5px/1.55 var(--f-doc); }
 
 /* trace */
 .table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font: 12.5px/1.4 var(--f-mono); font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 var(--f-mono); font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
 th { font: 600 11px/1 var(--f-ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 td.num { text-align: right; }
 td .s-ok { color: var(--ok); } td .s-rej { color: var(--warn); } td .s-err { color: var(--bad); }
 
-footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 75ch; }
+footer { font-size: 15px; color: var(--muted); display: grid; gap: 6px; max-width: 75ch; }
 
 @media (max-width: 860px) {
   .inputs, .results { grid-template-columns: 1fr; }
@@ -199,41 +208,49 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Multi-agent demo</span>
-    <h1>Job Application Copilot</h1>
+        <h1>Job Application Copilot</h1>
     <p class="thesis">Tailors your resume to a job posting <em>without inventing experience</em>, shows your real skill gaps, and preps you for the interview.</p>
   </header>
 
+  <div class="step"><b>1</b> Paste your resume and a job posting</div>
   <section class="inputs" aria-label="Inputs">
     <div class="field">
-      <label for="resume">Your resume <span>· bullets start with "-", skills on a "Skills:" line</span></label>
+      <label for="resume">Your resume <span>Start each experience line with "-". Put skills on a "Skills:" line.</span></label>
       <textarea id="resume" spellcheck="false"></textarea>
     </div>
     <div class="field">
-      <label for="job">Job posting <span>· paste the full description</span></label>
+      <label for="job">Job posting <span>Paste the full description.</span></label>
       <textarea id="job" spellcheck="false"></textarea>
     </div>
   </section>
 
+  <div class="step"><b>2</b> Run it</div>
   <section class="controls" aria-label="Run">
+    <button class="btn" type="button" id="run">Tailor my resume</button>
+    <button class="btn ghost" type="button" id="stop" hidden>Stop</button>
+    <button class="btn ghost" type="button" id="reset">Reset example</button>
     <div class="seg" role="group" aria-label="Engine">
       <button type="button" id="eng-example" aria-pressed="true">Example engine</button>
       <button type="button" id="eng-live" aria-pressed="false" disabled>Live</button>
     </div>
-    <label class="toggle" for="inject"><input type="checkbox" id="inject"> Inject a made-up bullet into the first draft</label>
-    <label class="toggle" for="inflate"><input type="checkbox" id="inflate"> Strengthen a verb in the first draft ("Owned" becomes "Led")</label>
-    <button class="btn" type="button" id="run">Run agents</button>
-    <button class="btn ghost" type="button" id="stop" hidden>Stop</button>
-    <button class="btn ghost" type="button" id="reset">Reset example</button>
     <p class="note" id="engine-note">Example engine: rule-based stand-ins for the AI agents, instant and free. The Critic is the same code in both modes.</p>
+    <details class="tests">
+      <summary>Optional: test the safety check</summary>
+      <div>
+        <p>Tick one to sneak a mistake into the first draft. Watch the Critic catch it and send the draft back.</p>
+        <label class="toggle" for="inject"><input type="checkbox" id="inject"> Add a made-up bullet</label>
+        <label class="toggle" for="inflate"><input type="checkbox" id="inflate"> Make a verb stronger ("Owned" becomes "Led")</label>
+      </div>
+    </details>
   </section>
 
+  <div class="step"><b>3</b> See the result</div>
   <ol class="pipeline" id="pipeline" aria-label="Agent pipeline">
-    <li data-stage="guardrails"><span class="kind">Code</span><span class="name">Guardrails</span><span class="state">idle</span></li>
-    <li data-stage="analyzer"><span class="kind" data-kind>Agent</span><span class="name">Analyzer</span><span class="state">idle</span></li>
-    <li data-stage="tailor"><span class="kind" data-kind>Agent</span><span class="name">Tailor</span><span class="state">idle</span></li>
-    <li data-stage="critic"><span class="kind">Code</span><span class="name">Critic</span><span class="state">idle</span></li>
-    <li data-stage="coach"><span class="kind" data-kind>Agent</span><span class="name">Coach</span><span class="state">idle</span></li>
+    <li data-stage="guardrails"><span class="kind">Code</span><span class="name">Check input</span><span class="state">idle</span></li>
+    <li data-stage="analyzer"><span class="kind" data-kind>Agent</span><span class="name">Read posting</span><span class="state">idle</span></li>
+    <li data-stage="tailor"><span class="kind" data-kind>Agent</span><span class="name">Rewrite resume</span><span class="state">idle</span></li>
+    <li data-stage="critic"><span class="kind">Code</span><span class="name">Fact-check</span><span class="state">idle</span></li>
+    <li data-stage="coach"><span class="kind" data-kind>Agent</span><span class="name">Interview prep</span><span class="state">idle</span></li>
   </ol>
 
   <section class="status" id="status" aria-live="polite"></section>
@@ -249,10 +266,10 @@ footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-widt
     </div>
   </section>
 
-  <section class="panel" aria-label="Trace">
-    <h2>Trace <small>· one row per agent call, the same fields the Python version logs</small></h2>
+  <details class="panel" aria-label="Trace">
+    <summary>Technical trace <small>one row per agent call</small></summary>
     <div class="table-wrap"><table id="trace"><thead><tr><th>#</th><th>Agent</th><th>Engine</th><th>Result</th><th class="num">Retries</th><th class="num">ms</th></tr></thead><tbody></tbody></table></div>
-  </section>
+  </details>
 
   <footer>
     <p>How it stays truthful: every tailored bullet must match one of your original bullets (80% word overlap or more) and may not add any number or a stronger claim ("Used" becoming "Led"). The summary is held to the same rules. Every claimed skill needs evidence in your resume. If the Critic rejects a draft, the Tailor gets one retry with the Critic's notes; if it still fails, the draft is withheld and sent for human review.</p>
@@ -717,7 +734,7 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
 }
 
 // ---------------------------------------------------------------- render
-const STATUS_TEXT = { ok: "Verified", needs_human: "Needs human review", blocked: "Input blocked", stopped: "Stopped" };
+const STATUS_TEXT = { ok: "✓ Safe to use", needs_human: "Needs a human to check", blocked: "Can't run: fix the input", stopped: "Stopped" };
 
 function render(r) {
   const st = $("status"); st.replaceChildren();
@@ -725,23 +742,23 @@ function render(r) {
   const a = r.analysis;
   if (r.status === "ok" && r.draft) {
     const ev = r.draft.matched_skills.length, req = a.required_skills.length;
-    st.append(h("span", { class: "sum" }, `${r.draft.bullets.length} bullets traced to your resume · ${ev} of ${req} required skills evidenced`));
+    st.append(h("span", { class: "sum" }, `Every line below comes from your real experience. You show evidence for ${ev} of the ${req} skills this job asks for.`));
   } else if (r.status === "blocked") {
     st.append(h("span", { class: "sum" }, r.flags.includes("jd_too_short") ? "The job posting is too short to analyze. Paste the full description." : "No resume bullets found. Start each experience line with \"-\"."));
   } else if (r.status === "needs_human" && r.drafts.length) {
-    st.append(h("span", { class: "sum" }, "The Critic rejected every draft, so nothing unverified is shown."));
+    st.append(h("span", { class: "sum" }, "The fact-checker rejected every draft, so nothing unverified is shown."));
   }
-  r.flags.forEach(f => st.append(h("span", { class: "chip" }, f)));
+  if (r.flags.length) st.append(h("span", { class: "meta" }, "Notes:"), ...r.flags.map(f => h("span", { class: "chip" }, f.replace(/_/g, " "))));
 
   // sheet
-  const sheet = $("sheet"); sheet.replaceChildren(h("span", { class: "eyebrow" }, "Tailored resume"));
+  const sheet = $("sheet"); sheet.replaceChildren(h("span", { class: "eyebrow" }, "Your tailored resume"));
   if (r.draft) {
     sheet.append(h("p", { class: "summary" }, r.draft.summary));
     const ul = h("ul", { class: "bullets" });
     r.draft.bullets.forEach((b, i) => {
       const p = r.prov[i];
       ul.append(h("li", {}, h("span", { class: "text" }, b),
-        h("span", { class: "prov" }, `↳ traced to your bullet ${p.idx + 1} · ${Math.round(p.overlap * 100)}% wording match · no new numbers · no stronger wording`)));
+        h("span", { class: "prov" }, `✓ Matches your bullet ${p.idx + 1}. No new numbers, no stronger claims.`)));
     });
     sheet.append(ul);
   } else if (r.status === "needs_human" && r.drafts.length) {
@@ -758,7 +775,7 @@ function render(r) {
   }
 
   // role
-  const role = $("role"); role.replaceChildren(h("span", { class: "eyebrow" }, "The role · Analyzer"));
+  const role = $("role"); role.replaceChildren(h("span", { class: "eyebrow" }, "The role"));
   if (a) {
     const matched = new Set((r.draft?.matched_skills || []).map(s => s.toLowerCase()));
     const known = !!r.draft;
@@ -767,30 +784,33 @@ function render(r) {
       const pct = a.required_skills.length ? matched.size / a.required_skills.length : 0;
       role.append(h("div", { class: "meter", role: "img", "aria-label": `${Math.round(pct * 100)}% of required skills evidenced` }, h("div", { style: `width:${Math.round(pct * 100)}%` })));
     }
-    role.append(h("div", { class: "skills" }, a.required_skills.map(s => h("span", { class: `skill ${known ? (matched.has(s.toLowerCase()) ? "has" : "gap") : "nice"}` }, s))));
-    if (a.nice_to_have.length) role.append(h("div", { class: "skills" }, a.nice_to_have.map(s => h("span", { class: "skill nice" }, `${s} · nice to have`))));
-    if (known) role.append(h("div", { class: "legend" },
-      h("span", {}, h("i", { style: "background:var(--mark)" }), "evidenced in your resume"),
-      h("span", {}, h("i", { style: "border:1px dashed var(--muted)" }), "gap, shown honestly")));
+    const reqs = a.required_skills, mk = (cls, list) => h("div", { class: "skills" }, list.map(x => h("span", { class: `skill ${cls}` }, x)));
+    if (known) {
+      const have = reqs.filter(x => matched.has(x.toLowerCase())), miss = reqs.filter(x => !matched.has(x.toLowerCase()));
+      if (have.length) role.append(h("div", { class: "skill-group" }, h("h3", {}, "Skills you can show"), mk("has", have)));
+      if (miss.length) role.append(h("div", { class: "skill-group" }, h("h3", {}, "Gaps (shown honestly, never faked)"), mk("gap", miss)));
+    } else role.append(h("div", { class: "skill-group" }, h("h3", {}, "Skills the job asks for"), mk("nice", reqs)));
+    if (a.nice_to_have.length) role.append(h("div", { class: "skill-group" }, h("h3", {}, "Nice to have"), mk("nice", a.nice_to_have)));
   } else role.append(h("p", { class: "meta" }, "Not analyzed."));
 
   // critic
-  const cr = $("critic"); cr.replaceChildren(h("span", { class: "eyebrow" }, "Critic · plain code, not a model"));
+  const cr = $("critic"); cr.replaceChildren(h("span", { class: "eyebrow" }, "Fact-check · done by plain code, not an AI"));
   if (r.drafts.length) {
     const ol = h("ul", { class: "drafts" });
     r.drafts.forEach(d => ol.append(h("li", { class: d.approved ? "ok" : "rej" },
-      h("span", { class: "head" }, d.approved ? `Draft ${d.n} approved: every bullet and skill traced` : `Draft ${d.n} rejected: ${d.issues.length} issue${d.issues.length > 1 ? "s" : ""}`),
+      h("span", { class: "head" }, d.approved ? `Draft ${d.n} passed: every line checked out` : `Draft ${d.n} sent back: ${d.issues.length} problem${d.issues.length > 1 ? "s" : ""} found`),
       d.issues.length ? h("ul", {}, d.issues.map(i => h("li", {}, i))) : null)));
     cr.append(ol);
-    if (r.drafts.length === 2 && r.drafts[1].approved) cr.append(h("p", { class: "meta" }, "The rejected draft went back to the Tailor with these notes, and the corrected draft passed."));
+    if (r.drafts.length === 2 && r.drafts[1].approved) cr.append(h("p", { class: "meta" }, "The first draft went back for a rewrite with these notes, and the corrected draft passed."));
   } else cr.append(h("p", { class: "meta" }, "Didn't run."));
 
   // prep
-  const pr = $("prep"); pr.replaceChildren(h("span", { class: "eyebrow" }, "Interview prep · Coach"));
+  const pr = $("prep"); pr.replaceChildren(h("span", { class: "eyebrow" }, "Interview prep"));
   if (r.prep) {
-    pr.append(h("ol", { class: "qs" }, r.prep.questions.map(q => h("li", {},
-      h("span", { class: "q" }, q.question), q.why_asked ? h("span", { class: "why" }, q.why_asked) : null, q.tip ? h("span", { class: "tip" }, q.tip) : null))));
-    if (r.prep.gap_talking_points.length) pr.append(h("h3", { class: "eyebrow" }, "Talking about your gaps"),
+    const seen = new Set();   // the same coaching tip on every question is noise: show each distinct tip once
+    pr.append(h("ol", { class: "qs" }, r.prep.questions.map(q => { const t = q.tip && !seen.has(q.tip) ? q.tip : null; if (q.tip) seen.add(q.tip); return h("li", {},
+      h("span", { class: "q" }, q.question), q.why_asked ? h("span", { class: "why" }, q.why_asked) : null, t ? h("span", { class: "tip" }, t) : null); })));
+    if (r.prep.gap_talking_points.length) pr.append(h("h3", { class: "eyebrow" }, "How to talk about your gaps"),
       h("ul", { class: "gaps" }, r.prep.gap_talking_points.map(g => h("li", {}, g))));
   } else pr.append(h("p", { class: "meta" }, "Runs only after the Critic approves a draft."));
 
@@ -834,7 +854,7 @@ function setEngine(next) {
 async function go(animate) {
   if (busy) return;
   busy = true;
-  $("run").disabled = true; $("run").textContent = "Running…";
+  $("run").disabled = true; $("run").textContent = "Working…";
   ctl = engine === "live" ? new AbortController() : null;
   $("stop").hidden = !ctl;
   try {
@@ -845,7 +865,7 @@ async function go(animate) {
       note.textContent = "Live mode isn't available here, so the example engine is selected."; note.classList.add("err");
     }
   } finally {
-    busy = false; $("run").disabled = false; $("run").textContent = "Run agents"; $("stop").hidden = true; ctl = null;
+    busy = false; $("run").disabled = false; $("run").textContent = "Tailor my resume"; $("stop").hidden = true; ctl = null;
   }
 }
 
