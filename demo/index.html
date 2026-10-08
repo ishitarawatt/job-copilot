@@ -1066,7 +1066,7 @@ if (motionOK && "IntersectionObserver" in window) {
 
 // ---------------------------------------------------------------- top bar: smooth jumps + highlight the section in view
 {
-  const links = [...document.querySelectorAll("nav.top .tags a")];
+  const links = [...document.querySelectorAll("nav.top .tags a[href^=\"#\"]")];
   const go = (hash) => {
     const el = hash === "#top" ? null : document.querySelector(hash);
     if (el) el.scrollIntoView({ behavior: motionOK ? "smooth" : "auto", block: "start" });
