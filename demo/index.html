@@ -218,6 +218,7 @@ th { font: 600 11px/1 var(--f-ui); letter-spacing: .07em; text-transform: upperc
 td.num { text-align: right; }
 td .s-ok { color: var(--ok); } td .s-rej { color: var(--warn); } td .s-err { color: var(--bad); }
 
+footer a { color: var(--accent); text-underline-offset: 3px; }
 footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 75ch; }
 
 /* motion: gentle, a few seconds at most, and fully off for people who ask for reduced motion */
@@ -309,7 +310,7 @@ details.panel { border-top: 1px solid var(--rule); padding-block: 22px; }
 <nav class="top" aria-label="Main">
   <a class="brand" href="#top"><i></i>Job Application Copilot</a>
   <span class="tags">
-    <a href="#tailor">Tailor</a><a href="#ats">ATS score</a><a href="#critic">Fact-check</a><a href="#prep">Interview prep</a>
+    <a href="#tailor">Tailor</a><a href="#ats">ATS score</a><a href="#critic">Fact-check</a><a href="#prep">Interview prep</a><a class="ext" href="https://ishitarawatt.github.io/AI-PM-portfolio/support-desk/demo/" target="_blank" rel="noopener">Support Desk ↗</a>
   </span></nav>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="wrap" id="top">
@@ -388,6 +389,7 @@ details.panel { border-top: 1px solid var(--rule); padding-block: 22px; }
   </details>
 
   <footer>
+    <p>Part of a two-product portfolio: see the other one, <a href="https://ishitarawatt.github.io/AI-PM-portfolio/support-desk/demo/" target="_blank" rel="noopener">Support Desk</a>, which resolves support tickets and keeps the AI away from the money.</p>
     <p>How it stays truthful: every tailored bullet must match one of your original bullets (80% word overlap or more) and may not add any number or a stronger claim ("Used" becoming "Led"). The summary is held to the same rules. Every claimed skill needs evidence in your resume. If the Critic rejects a draft, the Tailor gets one retry with the Critic's notes; if it still fails, the draft is withheld and sent for human review.</p>
     <p>Live mode sends your text to the live model using your own account and asks your permission first. Phone numbers, emails, links, @handles and street addresses are removed before anything is sent.</p>
   </footer>
@@ -1070,7 +1072,7 @@ if (motionOK && "IntersectionObserver" in window) {
     if (el) el.scrollIntoView({ behavior: motionOK ? "smooth" : "auto", block: "start" });
     else window.scrollTo({ top: 0, behavior: motionOK ? "smooth" : "auto" });
   };
-  document.querySelectorAll("nav.top a").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); go(a.getAttribute("href")); }));
+  document.querySelectorAll("nav.top a[href^=\"#\"]").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); go(a.getAttribute("href")); }));
   const targets = links.map(a => document.querySelector(a.getAttribute("href")));
   let ticking = false;
   const mark = () => {
