@@ -7,6 +7,8 @@ Four agents: **Analyzer → Tailor ⇄ Critic → Coach**, wrapped in determinis
 ## Try it in the browser
 Open [`demo/index.html`](demo/index.html) in any browser, or use the hosted demo link. It runs the full pipeline in the page, shows which original bullet each tailored bullet came from, and has a switch that injects a made-up bullet so you can watch the Critic reject it. When opened inside Claude, a live mode lets real Claude play the Analyzer, Tailor and Coach.
 
+The demo also has an **ATS-friendly score** with a copy-as-plain-text button, a **Show what changed** view that compares each tailored bullet with your original wording, a picker with five more example resumes and postings (one with honest skill gaps), and a **This session** list that compares scores across your runs. These are presentation only; the Critic and the scores are untouched.
+
 ## Quick start (no API key needed)
 ```bash
 pip install -r requirements.txt          # pytest (+ anthropic for live mode)
