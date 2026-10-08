@@ -163,6 +163,18 @@ details.panel > summary { cursor: pointer; font: 600 15px/1.3 var(--f-ui); }
 .bullets .text { font: 400 15.5px/1.55 var(--f-doc); }
 .prov { font: 500 12.5px/1.35 var(--f-ui); color: var(--ok); }
 .prov.bad { color: var(--bad); }
+.diff-toggle { font-size: 13px; }
+.orig, mark.add, del { display: none; }
+.sheet.diff .orig { display: block; font: 400 12.5px/1.5 var(--f-doc); color: var(--muted); }
+.sheet.diff mark.add { display: inline; background: var(--mark); color: var(--mark-ink); border-radius: 3px; padding: 0 2px; }
+.sheet.diff del { display: inline; text-decoration: line-through; text-decoration-thickness: 1px; background: var(--bad-bg); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.hist li:last-child { border-bottom: 0; padding-bottom: 0; }
+.hist .ht { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; }
+.hist .hs { font: 600 15px/1.2 var(--f-ui); font-variant-numeric: tabular-nums; text-align: right; }
+.hist .hs small { font-size: 11.5px; } .hist .up { color: var(--ok); } .hist .down { color: var(--bad); }
+.hist .hm { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
 .withheld { border: 1px dashed var(--warn); background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 14px 16px; font-size: 14px; display: grid; gap: 4px; }
 .withheld strong { font-weight: 600; }
 
@@ -328,6 +340,8 @@ details.panel { border-top: 1px solid var(--rule); padding-block: 22px; }
     <button class="btn" type="button" id="run">Tailor my resume</button>
     <button class="btn ghost" type="button" id="stop" hidden>Stop</button>
     <button class="btn ghost" type="button" id="reset">Reset example</button>
+    <label class="inline" for="sample">Try another example
+      <select id="sample" aria-label="Load an example resume and job"><option value="">Product manager (default)</option><option value="backend_full_match">Backend engineer</option><option value="frontend_full_match">Frontend engineer</option><option value="data_full_match_with_punctuated_numbers">Data analyst</option><option value="ml_retrieval_and_infra_gaps_reported">ML engineer (shows honest gaps)</option><option value="ops_full_match">Operations manager</option></select></label>
     <div class="seg" role="group" aria-label="Engine">
       <button type="button" id="eng-example" aria-pressed="true">Example engine</button>
       <button type="button" id="eng-live" aria-pressed="false" disabled>Live</button>
@@ -361,6 +375,7 @@ details.panel { border-top: 1px solid var(--rule); padding-block: 22px; }
     </div>
     <div class="col">
       <article class="panel" id="ats"></article>
+      <article class="panel" id="history"></article>
       <article class="panel" id="role"></article>
       <article class="panel" id="critic"></article>
       <article class="panel" id="prep"></article>
@@ -800,6 +815,7 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
   setStage("guardrails", "running", "checking input"); await sleep(pace);
   const chk = checkJob(jdText);
   const resume = parseResume(redactPII(resumeText));
+  r.orig = resume.bullets;   // for the "what changed" view
   r.flags.push(...chk.flags);
   if (!chk.ok || !resume.bullets.length) {
     if (!resume.bullets.length) r.flags.push("resume_has_no_bullets");
@@ -870,6 +886,38 @@ async function run({ resumeText, jdText, engine, inject, inflate, animate, signa
   }
 }
 
+// ---------------------------------------------------------------- extras (presentation only; never touch the Critic or any score)
+let showChanges = false;
+const norm = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}%$.+#/-]/gu, "");
+// word-level diff (longest common subsequence): kept words, words dropped from your original, words the rewrite added
+function diffWords(a, b) {
+  const x = a.split(/\s+/).filter(Boolean), y = b.split(/\s+/).filter(Boolean);
+  const L = Array.from({ length: x.length + 1 }, () => new Array(y.length + 1).fill(0));
+  for (let i = x.length - 1; i >= 0; i--) for (let j = y.length - 1; j >= 0; j--) L[i][j] = norm(x[i]) === norm(y[j]) ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < x.length && j < y.length) {
+    if (norm(x[i]) === norm(y[j])) { out.push({ k: "same", t: y[j] }); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) out.push({ k: "del", t: x[i++] });
+    else out.push({ k: "add", t: y[j++] });
+  }
+  while (i < x.length) out.push({ k: "del", t: x[i++] });
+  while (j < y.length) out.push({ k: "add", t: y[j++] });
+  return out;
+}
+const SAMPLES = [{"id":"backend_full_match","label":"Backend engineer","resume":"Kabir Shah\nBackend engineer with six years building services.\nSkills: python, sql, docker, api design\n- Built a python api design for the billing service handling 2 million requests a day\n- Moved the nightly sql jobs into docker containers\n- Wrote runbooks for the on-call rotation\n","job":"Backend Engineer\nOur team builds tools for busy people.\nRequirements: python, sql, docker, api design."},{"id":"frontend_full_match","label":"Frontend engineer","resume":"Tara Nair\nFrontend engineer with five years on web apps.\nSkills: javascript, typescript, react, figma\n- Rebuilt the checkout in react and typescript, cutting load time by 40%\n- Turned figma mockups into shared components for three product teams\n- Fixed accessibility bugs reported by customers\n","job":"Frontend Engineer\nOur team builds tools for busy people.\nRequirements: javascript, typescript, react, figma."},{"id":"data_full_match_with_punctuated_numbers","label":"Data analyst","resume":"Meera Iyer\nAnalyst with three years in e-commerce.\nSkills: sql, python, tableau, data analysis\n- Built tableau dashboards that cut reporting time by 30%.\n- Wrote sql and python scripts for data analysis of 1,200 weekly orders\n- Presented weekly findings to the finance team\n","job":"Data Analyst\nOur team builds tools for busy people.\nRequirements: sql, python, tableau, data analysis."},{"id":"ml_retrieval_and_infra_gaps_reported","label":"ML engineer (shows honest gaps)","resume":"Nikhil Rao\nML engineer with four years shipping models.\nSkills: python, machine learning, llm, evals\n- Trained a machine learning model that flagged fraud in 1.2 million transactions\n- Built llm evals that caught regressions before each release\n- Wrote python tooling for the labelling team\n","job":"ML Engineer\nOur team builds tools for busy people.\nRequirements: python, llm, rag, kubernetes."},{"id":"ops_full_match","label":"Operations manager","resume":"Priya Sharma\nOperations lead with seven years in logistics.\nSkills: analytics, okrs, stakeholder management, communication\n- Managed stakeholder management across five regional depots\n- Set okrs for the delivery team and tracked them weekly\n- Ran analytics on late deliveries to find the three worst routes\n","job":"Operations Manager\nOur team builds tools for busy people.\nRequirements: analytics, okrs, stakeholder management."}];
+const history = [];   // this session only, kept in memory
+function renderHistory() {
+  const el = $("history"); el.replaceChildren(h("span", { class: "eyebrow" }, "This session"));
+  if (!history.length) { el.append(h("p", { class: "meta" }, "Each approved run is listed here so you can compare scores.")); return; }
+  const ul = h("ul", { class: "hist" });
+  history.slice().reverse().forEach((x, i, arr) => {
+    const prev = arr[i + 1], d = prev ? x.score - prev.score : null;
+    ul.append(h("li", {}, h("span", { class: "ht" }, x.title), h("span", { class: "hs" }, `${x.score}`, d === null ? "" : h("small", { class: d > 0 ? "up" : d < 0 ? "down" : "" }, d === 0 ? " ±0" : ` ${d > 0 ? "+" : ""}${d}`)),
+      h("span", { class: "hm" }, `${x.have}/${x.req} required skills shown · run ${x.n}`)));
+  });
+  el.append(ul);
+}
+
 // ---------------------------------------------------------------- render
 const STATUS_TEXT = { ok: "✓ Safe to use", needs_human: "Needs a human to check", blocked: "Can't run: fix the input", stopped: "Stopped" };
 
@@ -892,10 +940,16 @@ function render(r) {
   if (r.draft) {
     sheet.append(h("p", { class: "summary" }, r.draft.summary));
     const ul = h("ul", { class: "bullets" });
+    const tg = h("label", { class: "toggle diff-toggle", for: "show-diff" }, h("input", { type: "checkbox", id: "show-diff" }), " Show what changed from your original");
+    tg.querySelector("input").checked = showChanges;
+    tg.querySelector("input").addEventListener("change", (e) => { showChanges = e.target.checked; sheet.classList.toggle("diff", showChanges); });
+    sheet.classList.toggle("diff", showChanges);
+    sheet.append(tg);
     r.draft.bullets.forEach((b, i) => {
-      const p = r.prov[i];
-      ul.append(h("li", {}, h("span", { class: "text" }, b),
-        h("span", { class: "prov" }, `✓ Matches your bullet ${p.idx + 1}. No new numbers, no stronger claims.`)));
+      const p = r.prov[i], orig = r.orig && r.orig[p.idx], parts = orig ? diffWords(orig, b) : null;
+      ul.append(h("li", {}, h("span", { class: "text" }, parts ? parts.filter(x => x.k !== "del").map(x => x.k === "add" ? h("mark", { class: "add" }, x.t + " ") : x.t + " ") : b),
+        h("span", { class: "prov" }, `✓ Matches your bullet ${p.idx + 1}. No new numbers, no stronger claims.`),
+        parts ? h("span", { class: "orig" }, parts.every(x => x.k === "same") ? "Kept exactly as you wrote it." : [h("b", {}, "Your original: "), parts.filter(x => x.k !== "add").map(x => x.k === "del" ? h("del", {}, x.t + " ") : x.t + " ")]) : null));
     });
     sheet.append(ul);
     const plain = [r.draft.summary, "", ...r.draft.bullets.map(b => "- " + b), "", "Skills: " + r.draft.matched_skills.join(", ")].join("\n");
@@ -1054,6 +1108,8 @@ async function go(animate) {
   try {
     const r = await run({ resumeText: $("resume").value, jdText: $("job").value, engine, inject: $("inject").checked, inflate: $("inflate").checked, animate, signal: ctl?.signal });
     render(r); animateScore(r);
+    if (r.status === "ok" && r.ats && r.analysis) { history.push({ n: history.length + 1, title: r.analysis.title, score: r.ats.score, have: r.draft.matched_skills.length, req: r.analysis.required_skills.length }); if (history.length > 8) history.shift(); }
+    renderHistory();
     if (r.error && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(r.error.code)) {
       $("eng-live").disabled = true; setEngine("example");
       note.textContent = "Live mode isn't available here, so the example engine is selected."; note.classList.add("err");
@@ -1067,7 +1123,11 @@ $("eng-example").addEventListener("click", () => setEngine("example"));
 $("eng-live").addEventListener("click", () => setEngine("live"));
 $("run").addEventListener("click", () => go(true));
 $("stop").addEventListener("click", () => ctl?.abort());
-$("reset").addEventListener("click", () => { $("resume").value = SAMPLE_RESUME; $("job").value = SAMPLE_JOB; $("inject").checked = false; $("inflate").checked = false; setEngine("example"); go(true); });
+$("sample").addEventListener("change", (e) => {
+  const x = SAMPLES.find(z => z.id === e.target.value);
+  $("resume").value = x ? x.resume : SAMPLE_RESUME; $("job").value = x ? x.job : SAMPLE_JOB; $("inject").checked = false; $("inflate").checked = false; go(true);
+});
+$("reset").addEventListener("click", () => { $("sample").value = ""; $("resume").value = SAMPLE_RESUME; $("job").value = SAMPLE_JOB; $("inject").checked = false; $("inflate").checked = false; setEngine("example"); go(true); });
 
 $("resume").value = SAMPLE_RESUME;
 $("job").value = SAMPLE_JOB;
